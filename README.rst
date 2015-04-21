@@ -46,3 +46,8 @@ Howto
         ...
         ...
     ]
+
+3. Add the IP address of the Avi Controller to your local_settings (typically in
+   openstack_dashboard/local/local_settings.py). For example::
+
+    AVI_CONTROLLER_IP = "10.10.32.53"
