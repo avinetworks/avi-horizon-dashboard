@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
-
+# Copyright 2015 Avi Networks, Inc.
+#
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
 # a copy of the License at
@@ -12,9 +12,14 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import pbr.version
+# The name of the panel to be added to HORIZON_CONFIG. Required.
+PANEL = 'avi'
+# The name of the dashboard the PANEL associated with. Required.
+PANEL_DASHBOARD = 'avi'
+# The name of the panel group the PANEL is associated with.
+PANEL_GROUP = 'avi-lbaas'
 
-from django.conf.urls import include, url
+ADD_EXCEPTIONS = {
+}
 
-__version__ = pbr.version.VersionInfo(
-    'avidashboard').version_string()
+ADD_INSTALLED_APPS = ['avidashboard.dashboards.project']
