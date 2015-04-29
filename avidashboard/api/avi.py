@@ -84,6 +84,9 @@ class AviSession():
     def put(self, url, *args, **kwargs):
         return self.call_api("put", self.prefix + url, *args, **kwargs)
 
+    def delete(self, url, *args, **kwargs):
+        return self.call_api("delete", self.prefix + url, *args, **kwargs)
+
     def call_api(self, method, *args, **kwargs):
         resp = getattr(self.sess, method)(*args, **kwargs)
         self.update_csrf_token(resp)
@@ -143,7 +146,17 @@ def add_cert(request, **kwargs):
                                       "key_passphrase": kwargs["passphrase"]}),
                      verify=False, timeout=5)
     print "resp: %s" % resp
-    return {"id": "hah"}
+    return {"id": resp['uuid']}
+
+
+def delete_cert(request, cert_id):
+    # def add_ssl_key_and_cert(sess, certname, key_str, cert_str, passphrase):
+    sess = avisession(request, request.user.tenant_name)
+    logger.info("sess headers: %s", sess.sess.headers)
+    resp = sess.delete("/api/sslkeyandcertificate/%s" % cert_id,
+                       verify=False, timeout=5)
+    print "resp: %s" % resp
+    return {"id": cert_id}
 
 
 def get_pool_cert(request, pool_id):

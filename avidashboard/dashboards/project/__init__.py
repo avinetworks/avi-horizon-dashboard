@@ -27,3 +27,33 @@ from openstack_dashboard.dashboards.project.loadbalancers.tables import PoolsTab
 from avidashboard.dashboards.project.loadbalancers.tables import AssociateCertificateLink
 PoolsTable._meta.row_actions += (AssociateCertificateLink,)
 PoolsTable.base_actions[AssociateCertificateLink.name] = AssociateCertificateLink()
+
+# patch to intercept delete-certificate call
+from openstack_dashboard.dashboards.project.loadbalancers.views import IndexView
+import re
+import avidashboard.api as api
+from django.utils.translation import ugettext_lazy as _
+from horizon import exceptions
+from horizon import messages
+
+prev_post = IndexView.post
+
+
+def new_post(self, request, *args, **kwargs):
+    obj_ids = request.POST.getlist('object_ids')
+    action = request.POST['action']
+    m = re.search('.delete([a-z]+)', action).group(1)
+    if obj_ids == []:
+        obj_ids.append(re.search('([0-9a-z-]+)$', action).group(1))
+    if m == "certificate":
+        for obj_id in obj_ids:
+            try:
+                api.avi.delete_cert(request, obj_id)
+                messages.success(request, _('Deleted certificate %s') % obj_id)
+            except Exception as e:
+                exceptions.handle(request,
+                                  _('Unable to delete certificate. %s') % e)
+
+    return prev_post(self, request, *args, **kwargs)
+
+IndexView.post = new_post
