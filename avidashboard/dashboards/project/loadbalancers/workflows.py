@@ -15,19 +15,14 @@
 import logging
 
 from django.utils.translation import ugettext_lazy as _
-from oslo_utils import units
 
 from django.utils.text import normalize_newlines  # noqa
 
 from horizon import exceptions
 from horizon import forms
-from horizon.utils import validators
 from horizon import workflows
 
 from avidashboard import api
-from openstack_dashboard.dashboards.project.loadbalancers import utils
-
-
 
 
 LOG = logging.getLogger(__name__)
@@ -124,7 +119,7 @@ class AddCertificateAction(workflows.Action):
             log_script_name = upload_file.name
             LOG.info('got upload %s' % log_script_name)
 
-            if upload_file._size > 16 * units.Ki:  # 16kb
+            if upload_file._size > 16 * 1024:  # 16kb
                 msg = _('File exceeds maximum size (16kb)')
                 raise forms.ValidationError(msg)
             else:

@@ -14,17 +14,12 @@
 
 
 from django.core.urlresolvers import reverse
-from django.template import defaultfilters as filters
-from django.utils import http
-from django.utils.translation import pgettext_lazy
 from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import ungettext_lazy
 
-from horizon import exceptions
 from horizon import tables
 
 from openstack_dashboard import api
-from avidashboard import api as aviapi
 from openstack_dashboard import policy
 
 
