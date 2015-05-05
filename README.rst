@@ -22,7 +22,12 @@ Howto
    This will create a python egg in the dist folder, which can be used to install
    on the horizon machine or within horizon's  python virtual environment.
 
-2. Modify horizon's settings file to add avidashboard. You have two options.
+2. Modify horizon's settings file to add avidashboard. If you are in a development
+   environment, then this file is horizon/openstack_dashboard/settings.py. If you
+   are in a production environment, most likely it is at
+   /usr/share/openstack-dashboard/openstack_dashboard/settings.py
+
+   You have two options.
 
    Option I: Import enabled and update settings::
 
@@ -48,6 +53,12 @@ Howto
     ]
 
 3. Add the IP address of the Avi Controller to your local_settings (typically in
-   openstack_dashboard/local/local_settings.py). For example::
+   openstack_dashboard/local/local_settings.py in development environment, or at
+   /etc/openstack_dashboard/local_settings.py in a production environment).
+   For example::
 
     AVI_CONTROLLER_IP = "10.10.32.53"
+
+4. Restart horizon. For example::
+
+    $> apache2ctl restart
