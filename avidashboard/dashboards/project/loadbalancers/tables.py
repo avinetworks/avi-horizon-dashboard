@@ -68,9 +68,13 @@ class AssociateCertificateLink(tables.LinkAction):
     def allowed(self, request, datum=None):
         if datum and datum.vip_id:
             vip = api.lbaas.vip_get(request, datum.vip_id)
-        if datum and (not datum.vip_id or datum.protocol != "HTTPS"
-                      or vip.protocol != "HTTPS"):
+        if datum and not datum.vip_id:
             return False
+        if datum.protocol not in ["HTTPS", "HTTP"]:
+            return False
+        if vip.protocol not in ["HTTPS", "HTTP"]:
+            return False
+        # pool+vip proto is HTTP or HTTPS
         return True
 
 
