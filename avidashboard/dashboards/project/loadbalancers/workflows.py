@@ -40,7 +40,7 @@ class AddCertificateAction(workflows.Action):
     key_source = forms.ChoiceField(label=_('Key Source'),
                                       choices=key_source_choices,
                                       widget=forms.Select(attrs=attributes),
-                                      required=False)
+                                      required=True)
 
     script_help = _("A script or set of commands to be executed after the "
                     "instance has been built (max 16kb).")
@@ -65,12 +65,13 @@ class AddCertificateAction(workflows.Action):
 
     passphrase = forms.CharField(max_length=255,
                                  widget=forms.PasswordInput(),
-                                 label=_("Key Passphrase"))
+                                 label=_("Key Passphrase"),
+                                 required=False)
     attributes = {'class': 'switchable', 'data-slug': 'certsource'}
     cert_source = forms.ChoiceField(label=_('Cert Source'),
                                       choices=key_source_choices,
                                       widget=forms.Select(attrs=attributes),
-                                      required=False)
+                                      required=True)
 
     script_help = _("A script or set of commands to be executed after the "
                     "instance has been built (max 16kb).")
@@ -175,7 +176,7 @@ class AddCertificate(workflows.Workflow):
 
 
 class AssociateCertificateAction(workflows.Action):
-    pool_cert = forms.ChoiceField(label=_("Pool Certificate"))
+    pool_cert = forms.ChoiceField(label=_("Pool Certificate"), required=False)
     vip_cert = forms.ChoiceField(label=_("VIP Certificate"))
 
     def __init__(self, request, *args, **kwargs):
