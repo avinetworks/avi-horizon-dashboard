@@ -176,8 +176,8 @@ class AddCertificate(workflows.Workflow):
 
 
 class AssociateCertificateAction(workflows.Action):
-    pool_cert = forms.ChoiceField(label=_("Pool Certificate"), required=False)
     vip_cert = forms.ChoiceField(label=_("VIP Certificate"))
+    pool_cert = forms.ChoiceField(label=_("Pool Certificate"), required=False)
 
     def __init__(self, request, *args, **kwargs):
         #print "request %s args %s kwargs %s" % (request, args, kwargs)
@@ -185,8 +185,11 @@ class AssociateCertificateAction(workflows.Action):
         certs = api.avi.certs_list(request, request.user.tenant_name)
         pool_cert_choices = [("", _("Select a Certificate"))]
         [pool_cert_choices.append((cert.name, cert.name)) for cert in certs]
-        self.fields["pool_cert"].choices = pool_cert_choices
-        self.fields["pool_cert"].initial = api.avi.get_pool_cert(request, args[0]["pool_id"])
+        if args[0].has_key('pool_id') and args[0]['pool_id']:
+            self.fields["pool_cert"].choices = pool_cert_choices
+            self.fields["pool_cert"].initial = api.avi.get_pool_cert(request, args[0]["pool_id"])
+        else:
+            del self.fields["pool_cert"]
         self.fields["vip_cert"].choices = pool_cert_choices
         self.fields["vip_cert"].initial = api.avi.get_vip_cert(request, args[0]["vip_id"])
         return
