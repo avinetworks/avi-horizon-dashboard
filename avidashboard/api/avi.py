@@ -26,6 +26,17 @@ from horizon.utils.memoized import memoized  # noqa
 
 
 logger = logging.getLogger(__name__)
+timeout = 15
+
+
+class AviResponseException(Exception):
+    def __init__(self, err_str, resp_code, content):
+        self.err_str = err_str
+        self.resp_code = resp_code
+        self.content = content
+
+    def __str__(self):
+        return "Response code: %s; Content: %s; %s" % (self.resp_code, self.content, self.err_str)
 
 
 class AviSession():
@@ -50,7 +61,7 @@ class AviSession():
         return
 
     def authenticate_session(self):
-        resp = self.sess.get(self.prefix, verify=False, timeout=5)
+        resp = self.sess.get(self.prefix, verify=False, timeout=timeout)
         logger.info("resp cookies: %s", requests.utils.dict_from_cookiejar(resp.cookies))
         self.sess.headers.update({"X-CSRFToken": requests.utils.dict_from_cookiejar(resp.cookies)['csrftoken'],
                                   "Referer": self.prefix})
@@ -59,7 +70,7 @@ class AviSession():
             body["password"] = self.password
         else:
             body["token"] = self.keystone_token
-        json_resp = self.post("login", body,timeout=5, verify=False)
+        json_resp = self.post("login", body,timeout=timeout, verify=False)
         if len(json_resp) <= 0:
             raise Exception("Did not get any response during authentication")
         # switch to a different tenant if needed
@@ -91,8 +102,8 @@ class AviSession():
         resp = getattr(self.sess, method)(*args, **kwargs)
         self.update_csrf_token(resp)
         if resp.status_code >= 300:
-            raise Exception("URL: %s (kwargs=%s) bad response code %s content %s" %
-                            (args[0], kwargs, resp.status_code, resp.content))
+            raise AviResponseException("URL: %s (kwargs=%s)" %
+                                       (args[0], kwargs), resp.status_code, resp.content)
         logger.info("resp cookies ------ %s", resp.cookies)
         json_resp = []
         if len(resp.content) > 0:
@@ -144,7 +155,7 @@ def add_cert(request, **kwargs):
                                       "certificate": kwargs["cert_data"],
                                       "key": kwargs["key_data"],
                                       "key_passphrase": kwargs["passphrase"]}),
-                     verify=False, timeout=5)
+                     verify=False, timeout=timeout)
     print "resp: %s" % resp
     return {"id": resp['uuid']}
 
@@ -153,9 +164,16 @@ def delete_cert(request, cert_id):
     # def add_ssl_key_and_cert(sess, certname, key_str, cert_str, passphrase):
     sess = avisession(request, request.user.tenant_name)
     logger.info("sess headers: %s", sess.sess.headers)
-    resp = sess.delete("/api/sslkeyandcertificate/%s" % cert_id,
-                       verify=False, timeout=5)
-    print "resp: %s" % resp
+    try:
+        resp = sess.delete("/api/sslkeyandcertificate/%s" % cert_id,
+                           verify=False, timeout=timeout)
+        print "resp: %s" % resp
+    except AviResponseException as aex:
+        if aex.content:
+            json_resp = json.loads(aex.content)
+            raise Exception(json_resp["error"])
+        else:
+            raise
     return {"id": cert_id}
 
 
