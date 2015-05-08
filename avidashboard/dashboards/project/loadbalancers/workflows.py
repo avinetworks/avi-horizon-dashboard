@@ -178,6 +178,7 @@ class AddCertificate(workflows.Workflow):
 class AssociateCertificateAction(workflows.Action):
     vip_cert = forms.ChoiceField(label=_("VIP Certificate"))
     pool_cert = forms.ChoiceField(label=_("Pool Certificate"), required=False)
+    pool_proto = forms.CharField(widget=forms.HiddenInput())
 
     def __init__(self, request, *args, **kwargs):
         #print "request %s args %s kwargs %s" % (request, args, kwargs)
@@ -192,6 +193,7 @@ class AssociateCertificateAction(workflows.Action):
             del self.fields["pool_cert"]
         self.fields["vip_cert"].choices = pool_cert_choices
         self.fields["vip_cert"].initial = api.avi.get_vip_cert(request, args[0]["vip_id"])
+        self.fields["pool_proto"].initial = args[0]["pool_proto"]
         return
 
     def clean(self):
@@ -207,8 +209,8 @@ class AssociateCertificateAction(workflows.Action):
 
 class AssociateCertificateStep(workflows.Step):
     action_class = AssociateCertificateAction
-    contributes = ("pool_cert", "vip_cert")
-    depends_on = ("pool_id", "vip_id")
+    contributes = ("pool_cert", "vip_cert", "pool_proto")
+    depends_on = ("pool_id", "vip_id", "pool_proto")
 
     def contribute(self, data, context):
         context = super(AssociateCertificateStep, self).contribute(data, context)
@@ -236,6 +238,7 @@ class AssociateCertificate(workflows.Workflow):
 class DisassociateCertificateAction(workflows.Action):
     vip_cert = forms.ChoiceField(label=_("VIP Certificate"))
     pool_cert = forms.ChoiceField(label=_("Pool Certificate"), required=False)
+    pool_proto = forms.CharField(widget=forms.HiddenInput())
 
     def __init__(self, request, *args, **kwargs):
         #print "request %s args %s kwargs %s" % (request, args, kwargs)
@@ -251,6 +254,7 @@ class DisassociateCertificateAction(workflows.Action):
         vcert = api.avi.get_vip_cert(request, args[0]["vip_id"])
         self.fields["vip_cert"].choices = [(vcert, vcert)]
         self.fields["vip_cert"].initial = vcert
+        self.fields["pool_proto"].initial = args[0]["pool_proto"]
         return
 
     def clean(self):
@@ -266,8 +270,8 @@ class DisassociateCertificateAction(workflows.Action):
 
 class DisassociateCertificateStep(workflows.Step):
     action_class = DisassociateCertificateAction
-    contributes = ("pool_cert", "vip_cert")
-    depends_on = ("pool_id", "vip_id")
+    contributes = ("pool_cert", "vip_cert", "pool_proto")
+    depends_on = ("pool_id", "vip_id", "pool_proto")
 
     def contribute(self, data, context):
         context = super(DisassociateCertificateStep, self).contribute(data, context)

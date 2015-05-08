@@ -38,6 +38,7 @@ class AssociateCertificateView(workflows.WorkflowView):
             pool = api.lbaas.pool_get(self.request, pool_id)
             initial['pool_id'] = pool_id if pool.protocol != 'HTTP' else None
             initial['vip_id'] = pool.vip_id
+            initial['pool_proto'] = pool.protocol
         except Exception as e:
             initial['vip_id'] = ''
             msg = _('Unable to retrieve pool object and vip_id. %s') % e
@@ -54,6 +55,7 @@ class DisassociateCertificateView(workflows.WorkflowView):
             pool = api.lbaas.pool_get(self.request, pool_id)
             initial['pool_id'] = pool_id if pool.protocol != 'HTTP' else None
             initial['vip_id'] = pool.vip_id
+            initial['pool_proto'] = pool.protocol
         except Exception as e:
             initial['vip_id'] = ''
             msg = _('Unable to retrieve pool object and vip_id. %s') % e

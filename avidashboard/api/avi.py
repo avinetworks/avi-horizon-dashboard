@@ -198,20 +198,24 @@ def get_vip_cert(request, vip_id):
 def associate_certs(request, **kwargs):
     sess = avisession(request, request.user.tenant_name)
     logger.info("sess headers: %s", sess.sess.headers)
+    pool_proto = kwargs.get("pool_proto")
+    pool_cert = kwargs.get("pool_cert")
     # get sslprofiles and sslcerts from avi
     certs = sess.get("/api/sslkeyandcertificate").get("results", [])
     profiles = sess.get("/api/sslprofile").get("results", [])
     def_profile = profiles[0]["url"]
     # update
-    if kwargs.get("pool_cert"):
+    if pool_cert or pool_proto == 'HTTPS':
         pool_id = "pool-" + kwargs.get("pool_id")
         pool = sess.get("/api/pool/%s" % pool_id)
-        cert_url = next(iter([cert["url"] for cert in certs if cert["name"] == kwargs.get("pool_cert")]), "")
-        #  put pool with default sslprofile and chosen sslcert
         pool["ssl_profile_ref"] = def_profile
-        pool["ssl_key_and_certificate_ref"] = cert_url
+        if pool_cert:
+            cert_url = next(iter([cert["url"] for cert in certs if cert["name"] == pool_cert]), "")
+            #  put pool with default sslprofile and chosen sslcert
+            pool["ssl_key_and_certificate_ref"] = cert_url
         resp = sess.put("/api/pool/%s" % pool_id, data=json.dumps(pool))
         logger.debug("Pool cert update resp: %s", resp)
+
     # now update VIP
     if kwargs.get("vip_cert"):
         vip_id = "virtualservice-" + kwargs.get("vip_id")
@@ -230,13 +234,16 @@ def associate_certs(request, **kwargs):
 def disassociate_certs(request, **kwargs):
     sess = avisession(request, request.user.tenant_name)
     logger.info("sess headers: %s", sess.sess.headers)
+    pool_proto = kwargs.get("pool_proto")
+    pool_cert = kwargs.get("pool_cert")
     # update
-    if kwargs.get("pool_cert"):
+    if pool_cert or pool_proto == 'HTTPS':
         pool_id = "pool-" + kwargs.get("pool_id")
         pool = sess.get("/api/pool/%s" % pool_id)
         # remove sslprofile and chosen sslcert
-        pool.pop("ssl_profile_ref")
-        pool.pop("ssl_key_and_certificate_ref")
+        for key in ["ssl_profile_ref", "ssl_key_and_certificate_ref"]:
+            if pool.has_key(key):
+                pool.pop(key)
         resp = sess.put("/api/pool/%s" % pool_id, data=json.dumps(pool))
         logger.debug("Pool cert update resp: %s", resp)
         l4profs = sess.get("/api/applicationprofile?name=System-L4-Application").get("results", [])
@@ -250,8 +257,9 @@ def disassociate_certs(request, **kwargs):
         vip = sess.get("/api/virtualservice/%s" % vip_id)
         # always set vip application_profile_ref to system secure http
         vip["application_profile_ref"] = def_profile
-        vip.pop("ssl_profile_ref")
-        vip.pop("ssl_key_and_certificate_refs")
+        for key in ["ssl_profile_ref", "ssl_key_and_certificate_ref"]:
+            if vip.has_key(key):
+                vip.pop(key)
         for svc in vip['services']:
             svc['enable_ssl'] = False
         resp = sess.put("/api/virtualservice/%s" % vip_id, data=json.dumps(vip))
