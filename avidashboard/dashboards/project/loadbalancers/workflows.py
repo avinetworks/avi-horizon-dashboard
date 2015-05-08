@@ -240,15 +240,15 @@ class DisassociateCertificateAction(workflows.Action):
     def __init__(self, request, *args, **kwargs):
         #print "request %s args %s kwargs %s" % (request, args, kwargs)
         super(DisassociateCertificateAction, self).__init__(request, *args, **kwargs)
+        pcert = None
         if args[0].has_key('pool_id') and args[0]['pool_id']:
             pcert = api.avi.get_pool_cert(request, args[0]["pool_id"])
-            LOG.error('siva %s', pcert)
-            self.fields["pool_cert"].choices = [(pcert, pcert)]
-            self.fields["pool_cert"].initial = pcert
-        else:
+            if pcert:
+                self.fields["pool_cert"].choices = [(pcert, pcert)]
+                self.fields["pool_cert"].initial = pcert
+        if not pcert:
             del self.fields["pool_cert"]
         vcert = api.avi.get_vip_cert(request, args[0]["vip_id"])
-        LOG.error('siva %s', vcert)
         self.fields["vip_cert"].choices = [(vcert, vcert)]
         self.fields["vip_cert"].initial = vcert
         return
