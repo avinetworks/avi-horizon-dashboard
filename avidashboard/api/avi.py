@@ -208,3 +208,34 @@ def associate_certs(request, **kwargs):
         resp = sess.put("/api/virtualservice/%s" % vip_id, data=json.dumps(vip))
         logger.debug("VIP cert update resp: %s", resp)
     return
+
+def disassociate_certs(request, **kwargs):
+    sess = avisession(request, request.user.tenant_name)
+    logger.info("sess headers: %s", sess.sess.headers)
+    # update
+    if kwargs.get("pool_cert"):
+        pool_id = "pool-" + kwargs.get("pool_id")
+        pool = sess.get("/api/pool/%s" % pool_id)
+        # remove sslprofile and chosen sslcert
+        pool.pop("ssl_profile_ref")
+        pool.pop("ssl_key_and_certificate_ref")
+        resp = sess.put("/api/pool/%s" % pool_id, data=json.dumps(pool))
+        logger.debug("Pool cert update resp: %s", resp)
+        l4profs = sess.get("/api/applicationprofile?name=System-L4-Application").get("results", [])
+        def_profile = l4profs[0]["url"]
+    else:
+        l7profs = sess.get("/api/applicationprofile?name=System-HTTP").get("results", [])
+        def_profile = l7profs[0]["url"]
+    # now update VIP
+    if kwargs.get("vip_cert"):
+        vip_id = "virtualservice-" + kwargs.get("vip_id")
+        vip = sess.get("/api/virtualservice/%s" % vip_id)
+        # always set vip application_profile_ref to system secure http
+        vip["application_profile_ref"] = def_profile
+        vip.pop("ssl_profile_ref")
+        vip.pop("ssl_key_and_certificate_refs")
+        for svc in vip['services']:
+            svc['enable_ssl'] = False
+        resp = sess.put("/api/virtualservice/%s" % vip_id, data=json.dumps(vip))
+        logger.debug("VIP cert update resp: %s", resp)
+    return

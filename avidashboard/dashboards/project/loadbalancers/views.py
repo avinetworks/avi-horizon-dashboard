@@ -12,7 +12,6 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import logging
 
 from django.utils.translation import ugettext_lazy as _
 
@@ -25,6 +24,7 @@ from avidashboard.dashboards.project.loadbalancers \
     import workflows as project_workflows
 
 import re
+import logging
 LOG = logging.getLogger(__name__)
 
 
@@ -33,6 +33,22 @@ class AssociateCertificateView(workflows.WorkflowView):
 
     def get_initial(self):
         initial = super(AssociateCertificateView, self).get_initial()
+        pool_id = self.kwargs['pool_id']
+        try:
+            pool = api.lbaas.pool_get(self.request, pool_id)
+            initial['pool_id'] = pool_id if pool.protocol != 'HTTP' else None
+            initial['vip_id'] = pool.vip_id
+        except Exception as e:
+            initial['vip_id'] = ''
+            msg = _('Unable to retrieve pool object and vip_id. %s') % e
+            exceptions.handle(self.request, msg)
+        return initial
+
+class DisassociateCertificateView(workflows.WorkflowView):
+    workflow_class = project_workflows.DisassociateCertificate
+
+    def get_initial(self):
+        initial = super(DisassociateCertificateView, self).get_initial()
         pool_id = self.kwargs['pool_id']
         try:
             pool = api.lbaas.pool_get(self.request, pool_id)

@@ -24,9 +24,11 @@ urlpatterns.extend(avi_urls)
 
 # patch to add a new row action link in the pools table
 from openstack_dashboard.dashboards.project.loadbalancers.tables import PoolsTable
-from avidashboard.dashboards.project.loadbalancers.tables import AssociateCertificateLink
-PoolsTable._meta.row_actions += (AssociateCertificateLink,)
+from avidashboard.dashboards.project.loadbalancers.tables import (
+    AssociateCertificateLink, DisassociateCertificateLink)
+PoolsTable._meta.row_actions += (AssociateCertificateLink,DisassociateCertificateLink)
 PoolsTable.base_actions[AssociateCertificateLink.name] = AssociateCertificateLink()
+PoolsTable.base_actions[DisassociateCertificateLink.name] = DisassociateCertificateLink()
 
 # patch to intercept delete-certificate call
 from openstack_dashboard.dashboards.project.loadbalancers.views import IndexView

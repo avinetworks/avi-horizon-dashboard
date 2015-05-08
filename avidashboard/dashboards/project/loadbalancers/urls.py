@@ -23,5 +23,7 @@ urlpatterns = patterns(
     url(r'^addcertificate$', views.AddCertificateView.as_view(), name='addcertificate'),
     url(r'^associatecertificate/(?P<pool_id>[^/]+)/$',
         views.AssociateCertificateView.as_view(), name='associatecertificate'),
+    url(r'^disassociatecertificate/(?P<pool_id>[^/]+)/$',
+        views.DisassociateCertificateView.as_view(), name='disassociatecertificate'),
 )
 

@@ -21,7 +21,10 @@ from horizon import tables
 
 from openstack_dashboard import api
 from openstack_dashboard import policy
+from avidashboard.api import avi
 
+import logging
+LOG = logging.getLogger(__name__)
 
 class AddCertificateLink(tables.LinkAction):
     name = "addcertificate"
@@ -54,6 +57,18 @@ class DeleteCertificateLink(policy.PolicyTargetMixin,
         )
 
 
+def _filter_allowed(request, datum):
+    vip = None
+    if datum.vip_id:
+        vip = api.lbaas.vip_get(request, datum.vip_id)
+    if not vip:
+        return False
+    if datum.protocol not in ["HTTPS", "HTTP"]:
+        return False
+    if vip.protocol not in ["HTTPS", "HTTP"]:
+        return False
+    return True
+
 class AssociateCertificateLink(tables.LinkAction):
     name = "associatecertificate"
     verbose_name = _("Associate Certificates")
@@ -66,17 +81,56 @@ class AssociateCertificateLink(tables.LinkAction):
         return base_url
 
     def allowed(self, request, datum=None):
-        if datum and datum.vip_id:
-            vip = api.lbaas.vip_get(request, datum.vip_id)
-        if datum and not datum.vip_id:
+        if not datum:
             return False
-        if datum.protocol not in ["HTTPS", "HTTP"]:
-            return False
-        if vip.protocol not in ["HTTPS", "HTTP"]:
+        if not _filter_allowed(request, datum):
             return False
         # pool+vip proto is HTTP or HTTPS
+        try:
+            v = avi.get_vip_cert(request, datum.vip_id)
+        except:
+            # this prevents non-avi providers
+            return False
+        if not v:
+            return True
+        if datum.protocol == 'HTTP':
+            return False
+        p = avi.get_pool_cert(request, datum.id)
+        if p:
+            return False
+        # atleast one of them doesnt have a certificate
         return True
 
+class DisassociateCertificateLink(tables.LinkAction):
+    name = "disassociatecertificate"
+    verbose_name = _("Disassociate Certificates")
+    classes = ("ajax-modal", "btn-update")
+    policy_rules = (("network", "update_vip"),)
+
+    def get_link_url(self, pool):
+        base_url = reverse("horizon:project:loadbalancers:disassociatecertificate",
+                           kwargs={'pool_id': pool.id})
+        return base_url
+
+    def allowed(self, request, datum=None):
+        if not datum:
+            return False
+        if not _filter_allowed(request, datum):
+            return False
+        # pool+vip proto is HTTP or HTTPS
+        try:
+            v = avi.get_vip_cert(request, datum.vip_id)
+        except:
+            # this prevents non-avi providers
+            return False
+        if v:
+            return True
+        if datum.protocol == 'HTTP':
+            return False
+        p = avi.get_pool_cert(request, datum.id)
+        if p:
+            return True
+        return False
 
 class CertificatesTable(tables.DataTable):
     name = tables.Column("name",

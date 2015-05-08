@@ -233,3 +233,62 @@ class AssociateCertificate(workflows.Workflow):
             exceptions.handle(request, _("Unable to associate certificates."))
         return False
 
+class DisassociateCertificateAction(workflows.Action):
+    vip_cert = forms.ChoiceField(label=_("VIP Certificate"))
+    pool_cert = forms.ChoiceField(label=_("Pool Certificate"), required=False)
+
+    def __init__(self, request, *args, **kwargs):
+        #print "request %s args %s kwargs %s" % (request, args, kwargs)
+        super(DisassociateCertificateAction, self).__init__(request, *args, **kwargs)
+        if args[0].has_key('pool_id') and args[0]['pool_id']:
+            pcert = api.avi.get_pool_cert(request, args[0]["pool_id"])
+            LOG.error('siva %s', pcert)
+            self.fields["pool_cert"].choices = [(pcert, pcert)]
+            self.fields["pool_cert"].initial = pcert
+        else:
+            del self.fields["pool_cert"]
+        vcert = api.avi.get_vip_cert(request, args[0]["vip_id"])
+        LOG.error('siva %s', vcert)
+        self.fields["vip_cert"].choices = [(vcert, vcert)]
+        self.fields["vip_cert"].initial = vcert
+        return
+
+    def clean(self):
+        cleaned_data = super(DisassociateCertificateAction, self).clean()
+        return cleaned_data
+
+    class Meta(object):
+        name = _("Disassociate Certificates")
+        permissions = ('openstack.services.network',)
+        help_text = _("Disassociate certificates.\n\n"
+                      "Specify certificates to disassociate")
+
+
+class DisassociateCertificateStep(workflows.Step):
+    action_class = DisassociateCertificateAction
+    contributes = ("pool_cert", "vip_cert")
+    depends_on = ("pool_id", "vip_id")
+
+    def contribute(self, data, context):
+        context = super(DisassociateCertificateStep, self).contribute(data, context)
+        if data:
+            return context
+
+
+class DisassociateCertificate(workflows.Workflow):
+    slug = "disassociatecertificate"
+    name = _("Disassociate Certificates")
+    finalize_button_name = _("Disassociate")
+    success_message = _('Disassociated certificates')
+    failure_message = _('Unable to disassociate certificates')
+    success_url = "horizon:project:loadbalancers:index"
+    default_steps = (DisassociateCertificateStep,)
+
+    def handle(self, request, context):
+        try:
+            api.avi.disassociate_certs(request, **context)
+            return True
+        except Exception:
+            exceptions.handle(request, _("Unable to disassociate certificates."))
+        return False
+
