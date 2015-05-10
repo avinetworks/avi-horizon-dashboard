@@ -241,7 +241,7 @@ def disassociate_certs(request, **kwargs):
         pool_id = "pool-" + kwargs.get("pool_id")
         pool = sess.get("/api/pool/%s" % pool_id)
         # remove sslprofile and chosen sslcert
-        for key in ["ssl_profile_ref", "ssl_key_and_certificate_ref"]:
+        for key in ["ssl_profile_ref", "ssl_key_and_certificate_refs"]:
             if pool.has_key(key):
                 pool.pop(key)
         resp = sess.put("/api/pool/%s" % pool_id, data=json.dumps(pool))
@@ -257,7 +257,7 @@ def disassociate_certs(request, **kwargs):
         vip = sess.get("/api/virtualservice/%s" % vip_id)
         # always set vip application_profile_ref to system secure http
         vip["application_profile_ref"] = def_profile
-        for key in ["ssl_profile_ref", "ssl_key_and_certificate_ref"]:
+        for key in ["ssl_profile_ref", "ssl_key_and_certificate_refs"]:
             if vip.has_key(key):
                 vip.pop(key)
         for svc in vip['services']:
