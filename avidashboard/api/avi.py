@@ -132,7 +132,7 @@ Cert = collections.namedtuple("Cert", ["id", "name", "cname", "iname", "algo", "
 
 def certs_list(request, tenant_name):
     sess = avisession(request, tenant_name)
-    certs = sess.get("/api/sslkeyandcertificate")
+    certs = sess.get("/api/sslkeyandcertificate?type=SSL_CERTIFICATE_TYPE_VIRTUALSERVICE")
     certificates = []
     for cert in certs.get('results', []):
         certificates.append(Cert(id=cert["uuid"],
