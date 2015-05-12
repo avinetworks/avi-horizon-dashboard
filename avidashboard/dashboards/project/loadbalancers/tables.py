@@ -20,7 +20,6 @@ from django.utils.translation import ungettext_lazy
 from horizon import tables
 
 from openstack_dashboard import api
-from openstack_dashboard import policy
 from avidashboard.api import avi
 
 import logging
@@ -35,26 +34,14 @@ class AddCertificateLink(tables.LinkAction):
     policy_rules = (("network", "create_health_monitor"),)
 
 
-class DeleteCertificateLink(policy.PolicyTargetMixin,
+class DeleteCertificateLink(
                         tables.DeleteAction):
     name = "deletecertificate"
     policy_rules = (("network", "delete_health_monitor"),)
-
-    @staticmethod
-    def action_present(count):
-        return ungettext_lazy(
-            u"Delete Certificate",
-            u"Delete Certificates",
-            count
-        )
-
-    @staticmethod
-    def action_past(count):
-        return ungettext_lazy(
-            u"Scheduled deletion of Certificate",
-            u"Scheduled deletion of Certificates",
-            count
-        )
+    action_present = _("Delete")
+    action_past = _("Scheduled deletion of %(data_type)s")
+    data_type_singular = _("Certificate")
+    data_type_plural = _("Certificates")
 
 
 def _filter_allowed(request, datum):
