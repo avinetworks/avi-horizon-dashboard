@@ -142,7 +142,7 @@ def certs_list(request, tenant_name):
                                  algo=cert["certificate"]["signature_algorithm"],
                                  self_signed=(cert["certificate"]["issuer"].get("organization", "") ==
                                              cert["certificate"]["subject"].get("organization", "")),
-                                 expires=cert["certificate"]["not_before"]))
+                                 expires=cert["certificate"]["not_after"]))
     return certificates
 
 
