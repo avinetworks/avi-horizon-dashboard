@@ -21,6 +21,7 @@ from django.utils.text import normalize_newlines  # noqa
 from horizon import exceptions
 from horizon import forms
 from horizon import workflows
+from horizon import messages
 
 from avidashboard import api
 
@@ -170,8 +171,9 @@ class AddCertificate(workflows.Workflow):
             context['certificate_id'] = api.avi.add_cert(
                 request, **context).get('id')
             return True
-        except Exception:
-            exceptions.handle(request, _("Unable to add certificate."))
+        except Exception as e:
+            messages.warning(request, _("Unable to add certificate: %s" % e))
+            #exceptions.handle(request, _("Unable to add certificate."))
         return False
 
 

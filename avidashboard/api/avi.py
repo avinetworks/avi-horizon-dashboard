@@ -150,13 +150,20 @@ def add_cert(request, **kwargs):
     # def add_ssl_key_and_cert(sess, certname, key_str, cert_str, passphrase):
     sess = avisession(request, request.user.tenant_name)
     logger.info("sess headers: %s", sess.sess.headers)
-    resp = sess.post("/api/sslkeyandcertificate/importkeyandcertificate",
+    try:
+        resp = sess.post("/api/sslkeyandcertificate/importkeyandcertificate",
                      data=json.dumps({"name": kwargs["name"],
                                       "certificate": kwargs["cert_data"],
                                       "key": kwargs["key_data"],
                                       "key_passphrase": kwargs["passphrase"]}),
                      verify=False, timeout=timeout)
-    print "resp: %s" % resp
+        print "resp: %s" % resp
+    except AviResponseException as aex:
+        if aex.content:
+            json_resp = json.loads(aex.content)
+            raise Exception(json_resp["error"])
+        else:
+            raise
     return {"id": resp['uuid']}
 
 
