@@ -142,8 +142,7 @@ class AddCertificateAction(workflows.Action):
     class Meta(object):
         name = _("Add New Certificate")
         permissions = ('openstack.services.network',)
-        help_text = _("Upload a Certificate.\n\n"
-                      "Specify key and certificate files to upload")
+        help_text = _("Use PEM for key and certificate format")
 
 
 class AddCertificateStep(workflows.Step):
