@@ -12,9 +12,11 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import pbr.version
+#import pbr.version
 
 from django.conf.urls import include, url
 
-__version__ = pbr.version.VersionInfo(
-    'avidashboard').version_string()
+#__version__ = pbr.version.VersionInfo(
+#    'avidashboard').version_string()
+
+__version__ = "0.3"

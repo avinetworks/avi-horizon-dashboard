@@ -26,7 +26,7 @@ urlpatterns.extend(avi_urls)
 from openstack_dashboard.dashboards.project.loadbalancers.tables import PoolsTable
 from avidashboard.dashboards.project.loadbalancers.tables import (
     AssociateCertificateLink, DisassociateCertificateLink)
-PoolsTable._meta.row_actions += (AssociateCertificateLink,DisassociateCertificateLink)
+PoolsTable._meta.row_actions += (AssociateCertificateLink, DisassociateCertificateLink)
 PoolsTable.base_actions[AssociateCertificateLink.name] = AssociateCertificateLink()
 PoolsTable.base_actions[DisassociateCertificateLink.name] = DisassociateCertificateLink()
 
@@ -59,3 +59,9 @@ def new_post(self, request, *args, **kwargs):
     return prev_post(self, request, *args, **kwargs)
 
 IndexView.post = new_post
+
+# patch to modify addvip help message
+from openstack_dashboard.dashboards.project.loadbalancers.workflows import AddVipAction
+AddVipAction.help_text += ("\n\n\n</b>IMPORTANT: If you are configuring SSL Offload with "
+                           "unencrypted HTTP to your pool members, select 'HTTP' "
+                           "in the Protocol field</b>\n\n\n")
