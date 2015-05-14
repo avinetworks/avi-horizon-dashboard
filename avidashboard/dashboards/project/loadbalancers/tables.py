@@ -135,7 +135,8 @@ class DisassociateCertificateLink(tables.LinkAction):
 class CertificatesTable(tables.DataTable):
     name = tables.Column("name",
                          verbose_name=_("Name"),
-                         link="horizon:project:loadbalancers:certdetails")
+                         #link="horizon:project:loadbalancers:certdetails"
+                         )
     cname = tables.Column("cname", verbose_name=_("Common Name"))
     iname = tables.Column("iname", verbose_name=_("Issuer Name"))
     algo = tables.Column("algo", verbose_name=_("Algorithm"))
