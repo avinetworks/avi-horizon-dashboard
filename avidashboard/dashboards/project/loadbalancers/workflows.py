@@ -43,12 +43,12 @@ class AddCertificateAction(workflows.Action):
                                       widget=forms.Select(attrs=attributes),
                                       required=True)
 
-    script_help = _("A script or set of commands to be executed after the "
-                    "instance has been built (max 16kb).")
+    key_file_help = _("Choose a file containing your private key.")
+    key_paste_help = _("Paste a private key (max 16kb).")
 
     key_upload = forms.FileField(
         label=_('Key File'),
-        help_text=script_help,
+        help_text=key_file_help,
         widget=forms.FileInput(attrs={
             'class': 'switched',
             'data-switch-on': 'keysource',
@@ -57,7 +57,7 @@ class AddCertificateAction(workflows.Action):
 
     key_data = forms.CharField(
         label=_('Key Data'),
-        help_text=script_help,
+        help_text=key_paste_help,
         widget=forms.widgets.Textarea(attrs={
             'class': 'switched',
             'data-switch-on': 'keysource',
@@ -74,12 +74,12 @@ class AddCertificateAction(workflows.Action):
                                       widget=forms.Select(attrs=attributes),
                                       required=True)
 
-    script_help = _("A script or set of commands to be executed after the "
-                    "instance has been built (max 16kb).")
+    cert_file_help = _("Choose a file containing your certificate.")
+    cert_paste_help = _("Paste a certificate (max 16kb).")
 
     cert_upload = forms.FileField(
         label=_('Cert File'),
-        help_text=script_help,
+        help_text=cert_file_help,
         widget=forms.FileInput(attrs={
             'class': 'switched',
             'data-switch-on': 'certsource',
@@ -88,7 +88,7 @@ class AddCertificateAction(workflows.Action):
 
     cert_data = forms.CharField(
         label=_('Cert Data'),
-        help_text=script_help,
+        help_text=cert_paste_help,
         widget=forms.widgets.Textarea(attrs={
             'class': 'switched',
             'data-switch-on': 'certsource',
