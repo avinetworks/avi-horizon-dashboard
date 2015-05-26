@@ -53,7 +53,7 @@ def new_post(self, request, *args, **kwargs):
                 api.avi.delete_cert(request, obj_id)
                 messages.success(request, _('Deleted certificate %s') % obj_id)
             except Exception as e:
-                messages.warning(request,
+                messages.error(request,
                                   _('Unable to delete certificate. %s') % e)
 
     return prev_post(self, request, *args, **kwargs)
