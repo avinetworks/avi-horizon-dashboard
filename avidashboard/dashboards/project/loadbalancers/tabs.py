@@ -17,6 +17,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from horizon import exceptions
 from horizon import tabs
+from horizon import messages
 
 from avidashboard import api
 
@@ -33,8 +34,9 @@ class CertificatesTab(tabs.TableTab):
         try:
             tenant_name = self.request.user.tenant_name
             certificates = api.avi.certs_list(self.tab_group.request, tenant_name)
-        except Exception:
+        except Exception as e:
             certificates = []
-            exceptions.handle(self.tab_group.request,
-                              _('Unable to retrieve certificates list.'))
+            messages.warning(self.tab_group.request, _("Unable to retrieve certificates"))
+            #exceptions.handle(self.tab_group.request,
+            #                  _('Unable to retrieve certificates list.'))
         return certificates

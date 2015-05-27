@@ -171,7 +171,7 @@ class AddCertificate(workflows.Workflow):
                 request, **context).get('id')
             return True
         except Exception as e:
-            messages.warning(request, _("Unable to add certificate: %s" % e))
+            messages.error(request, _("Unable to add certificate: %s" % e))
             #exceptions.handle(request, _("Unable to add certificate."))
         return False
 
@@ -233,7 +233,8 @@ class AssociateCertificate(workflows.Workflow):
             api.avi.associate_certs(request, **context)
             return True
         except Exception:
-            exceptions.handle(request, _("Unable to associate certificates."))
+            messages.error(request, _("Unable to associate certificates."))
+            #exceptions.handle(request, _("Unable to associate certificates."))
         return False
 
 class DisassociateCertificateAction(workflows.Action):
@@ -294,6 +295,7 @@ class DisassociateCertificate(workflows.Workflow):
             api.avi.disassociate_certs(request, **context)
             return True
         except Exception:
-            exceptions.handle(request, _("Unable to disassociate certificates."))
+            messages.error(request, _("Unable to disassociate certificates."))
+            #exceptions.handle(request, _("Unable to disassociate certificates."))
         return False
 
