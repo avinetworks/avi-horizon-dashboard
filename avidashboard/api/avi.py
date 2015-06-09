@@ -213,15 +213,19 @@ def associate_certs(request, **kwargs):
     def_profile = profiles[0]["url"]
     # update
     if pool_cert or pool_proto == 'HTTPS':
+        upd = dict()
         pool_id = "pool-" + kwargs.get("pool_id")
         pool = sess.get("/api/pool/%s" % pool_id)
-        pool["ssl_profile_ref"] = def_profile
+        if not pool.get('ssl_profile_ref'):
+            upd["ssl_profile_ref"] = def_profile
         if pool_cert:
             cert_url = next(iter([cert["url"] for cert in certs if cert["name"] == pool_cert]), "")
             #  put pool with default sslprofile and chosen sslcert
-            pool["ssl_key_and_certificate_ref"] = cert_url
-        resp = sess.put("/api/pool/%s" % pool_id, data=json.dumps(pool))
-        logger.debug("Pool cert update resp: %s", resp)
+            upd["ssl_key_and_certificate_ref"] = cert_url
+        if upd:
+            pool.update(upd)
+            resp = sess.put("/api/pool/%s" % pool_id, data=json.dumps(pool))
+            logger.debug("Pool cert update resp: %s", resp)
 
     # now update VIP
     if kwargs.get("vip_cert"):
@@ -247,8 +251,8 @@ def disassociate_certs(request, **kwargs):
     if pool_cert or pool_proto == 'HTTPS':
         pool_id = "pool-" + kwargs.get("pool_id")
         pool = sess.get("/api/pool/%s" % pool_id)
-        # remove sslprofile and chosen sslcert
-        for key in ["ssl_profile_ref", "ssl_key_and_certificate_refs"]:
+        # remove chosen sslcert - dont remove sslprofile
+        for key in ["ssl_key_and_certificate_ref"]:
             if pool.has_key(key):
                 pool.pop(key)
         resp = sess.put("/api/pool/%s" % pool_id, data=json.dumps(pool))
