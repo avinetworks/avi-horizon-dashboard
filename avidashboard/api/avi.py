@@ -248,7 +248,7 @@ def disassociate_certs(request, **kwargs):
         pool_id = "pool-" + kwargs.get("pool_id")
         pool = sess.get("/api/pool/%s" % pool_id)
         # remove sslprofile and chosen sslcert
-        for key in ["ssl_profile_ref", "ssl_key_and_certificate_refs"]:
+        for key in ["ssl_profile_ref", "ssl_key_and_certificate_ref"]:
             if pool.has_key(key):
                 pool.pop(key)
         resp = sess.put("/api/pool/%s" % pool_id, data=json.dumps(pool))
