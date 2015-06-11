@@ -205,8 +205,16 @@ class AssociateCertificateAction(workflows.Action):
         name = _("Associate Certificates")
         permissions = ('openstack.services.network',)
         help_text = _("Associate certificates.\n\n"
-                      "Specify certificates to associate")
-
+                      "Specify certificates to associate\n\n"
+                      "VIP Certificate:\n"
+                      "A certificate that the load-balancer, as a server, "
+                      "presents to an end-user (or browser)\n\n"
+                      "Pool Certificate (optional):\n"
+                      "A certificate that the load-balancer, as a client, "
+                      "presents to the backend servers (members) for "
+                      "authentication. Leave this field empty unless the "
+                      "backend servers are configured for client "
+                      "certificate authentication.")
 
 class AssociateCertificateStep(workflows.Step):
     action_class = AssociateCertificateAction
