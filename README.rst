@@ -27,9 +27,7 @@ Howto
    are in a production environment, most likely it is at
    /usr/share/openstack-dashboard/openstack_dashboard/settings.py
 
-   You have two options.
-
-   Option I: Import enabled and update settings::
+   Import enabled and update settings::
 
     import avidashboard.enabled    # ADD THIS LINE
 
@@ -41,16 +39,6 @@ Howto
        openstack_dashboard.local.enabled,
        avidashboard.enabled,      # ADD THIS LINE TOO
     ], HORIZON_CONFIG, INSTALLED_APPS)
-
-
-   Option II: Just add to INSTALLED_APPS::
-
-    INSTALLED_APPS = [
-        'avidashboard.dashboards.project',  # Add this line
-        'openstack_dashboard',
-        ...
-        ...
-    ]
 
 3. Add the IP address of the Avi Controller to your local_settings (typically in
    openstack_dashboard/local/local_settings.py in development environment, or at
