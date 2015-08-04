@@ -193,10 +193,23 @@ class AssociateCertificateAction(workflows.Action):
         if args[0].has_key('pool_id') and args[0]['pool_id']:
             self.fields["pool_cert"].choices = pool_cert_choices
             self.fields["pool_cert"].initial = api.avi.get_pool_cert(request, args[0]["pool_id"])
+            self.fields["pool_cert"].help_text = _(
+                      "Pool Certificate (optional):\n"
+                      "A certificate that the load-balancer, as a client, "
+                      "presents to the backend servers (members) for "
+                      "authentication. Leave this field empty unless the "
+                      "backend servers are configured for client "
+                      "certificate authentication.")
         else:
             del self.fields["pool_cert"]
         self.fields["vip_cert"].choices = pool_cert_choices
         self.fields["vip_cert"].initial = api.avi.get_vip_cert(request, args[0]["vip_id"])
+        self.fields["vip_cert"].help_text = _(
+                      "VIP Certificate:\n"
+                      "A certificate that the load-balancer, as a server, "
+                      "presents to an end-user (or browser)\n\n"
+                      )
+
         self.fields["pool_proto"].initial = args[0]["pool_proto"]
         return
 
@@ -208,7 +221,7 @@ class AssociateCertificateAction(workflows.Action):
         name = _("Associate Certificates")
         permissions = ('openstack.services.network',)
         help_text = _("Associate certificates.\n\n"
-                      "Specify certificates to associate")
+                      "Specify certificates to associate.")
 
 
 class AssociateCertificateStep(workflows.Step):
