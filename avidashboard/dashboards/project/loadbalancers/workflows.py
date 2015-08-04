@@ -36,6 +36,9 @@ class AddCertificateAction(workflows.Action):
     key_source_choices = [('', _('Select Key Source')),
                       ('raw', _('Direct Input')),
                       ('file', _('File'))]
+    cert_source_choices = [('', _('Select Certificate Source')),
+                      ('raw', _('Direct Input')),
+                      ('file', _('File'))]
 
     attributes = {'class': 'switchable', 'data-slug': 'keysource'}
     key_source = forms.ChoiceField(label=_('Key Source'),
@@ -70,7 +73,7 @@ class AddCertificateAction(workflows.Action):
                                  required=False)
     attributes = {'class': 'switchable', 'data-slug': 'certsource'}
     cert_source = forms.ChoiceField(label=_('Cert Source'),
-                                      choices=key_source_choices,
+                                      choices=cert_source_choices,
                                       widget=forms.Select(attrs=attributes),
                                       required=True)
 
