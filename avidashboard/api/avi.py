@@ -137,11 +137,11 @@ def certs_list(request, tenant_name):
     for cert in certs.get('results', []):
         certificates.append(Cert(id=cert["uuid"],
                                  name=cert["name"],
-                                 cname=cert["certificate"]["subject"]["common_name"],
-                                 iname=cert["certificate"]["issuer"].get("organization", ""),
-                                 algo=cert["certificate"]["signature_algorithm"],
-                                 self_signed=(cert["certificate"]["issuer"].get("organization", "") ==
-                                             cert["certificate"]["subject"].get("organization", "")),
+                                 cname=cert["certificate"].get("subject", {}).get("common_name", ""),
+                                 iname=cert["certificate"].get("issuer", {}).get("organization", ""),
+                                 algo=cert["certificate"].get("signature_algorithm", ""),
+                                 self_signed=(cert["certificate"].get("issuer", {}).get("organization", "") ==
+                                             cert["certificate"].get("subject", {}).get("organization", "")),
                                  expires=cert["certificate"]["not_after"]))
     return certificates
 
