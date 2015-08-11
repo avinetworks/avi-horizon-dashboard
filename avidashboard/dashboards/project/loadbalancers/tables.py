@@ -56,6 +56,14 @@ class DeleteCertificateLink(policy.PolicyTargetMixin,
             count
         )
 
+    def delete(self, request, obj_id):
+        try:
+            api.avi.delete_cert(request, obj_id)
+            messages.success(request, _('Deleted certificate %s') % obj_id)
+        except Exception as e:
+            exceptions.handle(request,
+                              _('Unable to delete certificate. %s') % e)
+
 
 def _filter_allowed(request, datum):
     vip = None
