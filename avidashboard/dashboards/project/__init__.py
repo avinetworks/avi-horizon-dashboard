@@ -86,7 +86,7 @@ def newAddMemberActionInit(self, request, *args, **kwargs):
             instances, more = real_svr_list(request)
             instances = [instance for instance
                          in instances
-                         if 'AVICNTRLTENANT' not in instance.metadata]
+                         if 'AVICNTRL' not in instance.metadata]
             return instances, more
 
         api.nova.server_list = filtered_nova_list
