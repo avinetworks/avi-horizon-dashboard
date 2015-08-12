@@ -112,7 +112,7 @@ class AssociateCertificateLink(tables.LinkAction):
 class DisassociateCertificateLink(tables.LinkAction):
     name = "disassociatecertificate"
     verbose_name = _("Disassociate Certificates")
-    classes = ("ajax-modal", "btn-update")
+    classes = ("ajax-modal", "btn-danger")
     policy_rules = (("network", "update_vip"),)
 
     def get_link_url(self, pool):
