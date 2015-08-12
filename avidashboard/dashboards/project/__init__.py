@@ -35,3 +35,31 @@ from openstack_dashboard.dashboards.project.loadbalancers.workflows import AddVi
 AddVipAction.help_text += ("\n\n\n</b>IMPORTANT: If you are configuring SSL Offload with "
                            "unencrypted HTTP to your pool members, select 'HTTP' "
                            "in the Protocol field</b>\n\n\n")
+
+# patch to ignore SEs in addmember action (courtesy: Eric Peterson, TWC)
+from openstack_dashboard.dashboards.project.loadbalancers.workflows \
+    import AddMemberAction
+
+oldAddMemberActionInit = AddMemberAction.__init__
+
+
+def newAddMemberActionInit(self, request, *args, **kwargs):
+    from openstack_dashboard import api
+    real_svr_list = api.nova.server_list
+
+    try:
+
+        def filtered_nova_list(request):
+            instances, more = real_svr_list(request)
+            instances = [instance for instance
+                         in instances
+                         if 'AVICNTRLTENANT' not in instance.metadata]
+            return instances, more
+
+        api.nova.server_list = filtered_nova_list
+        oldAddMemberActionInit(self, request, *args, **kwargs)
+    finally:
+        api.nova.server_list = real_svr_list
+
+
+AddMemberAction.__init__ = newAddMemberActionInit
