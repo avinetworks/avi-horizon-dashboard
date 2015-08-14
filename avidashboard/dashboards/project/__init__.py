@@ -63,3 +63,56 @@ def newAddMemberActionInit(self, request, *args, **kwargs):
 
 
 AddMemberAction.__init__ = newAddMemberActionInit
+
+# patch to add cert information in pool table
+from openstack_dashboard.dashboards.project.loadbalancers import tables \
+    as lbtables
+from avidashboard.api import avi
+old_get_data = lbtables.UpdatePoolsRow.get_data
+
+
+def add_pool_cert(pool, request):
+    pool.cert = None
+    if pool.vip_id:
+        try:
+            cert = avi.get_vip_cert(request, pool.vip_id)
+            if cert:
+                pool.cert = cert
+        except Exception as e:
+            print "Error in obtaining certificate info: %s" % e
+    return pool
+
+
+def new_get_data(self, request, pool_id):
+    pool = old_get_data(self, request, pool_id)
+    return add_pool_cert(pool, request)
+
+
+lbtables.UpdatePoolsRow.get_data = new_get_data
+
+
+old_get_vip_name = lbtables.get_vip_name
+from django.utils.safestring import SafeText
+
+
+def get_vip_name(pool):
+    ret_string = old_get_vip_name(pool)
+    if hasattr(pool, "cert") and pool.cert:
+        ret_string += "\n<br/>\n Certificate: %s\n" % pool.cert
+        ret_string = SafeText(ret_string)
+    return ret_string
+
+lbtables.PoolsTable.base_columns['vip_name'].transform = get_vip_name
+
+
+from openstack_dashboard.api import lbaas
+old_pool_list = lbaas._pool_list
+
+
+def new_pool_list(request, expand_subnet=False, expand_vip=False, **kwargs):
+    plist = old_pool_list(request, expand_subnet, expand_vip, **kwargs)
+    for pool in plist:
+        add_pool_cert(pool, request)
+    return plist
+
+lbaas._pool_list = new_pool_list
