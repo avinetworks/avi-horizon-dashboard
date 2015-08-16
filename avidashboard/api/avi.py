@@ -17,12 +17,12 @@ from __future__ import absolute_import
 
 import collections
 import logging
-import warnings
 import json
 import requests
+import pytz
+import datetime
 
 from django.conf import settings
-from horizon.utils.memoized import memoized  # noqa
 
 
 logger = logging.getLogger(__name__)
@@ -104,27 +104,39 @@ class AviSession():
         if resp.status_code >= 300:
             raise AviResponseException("URL: %s (kwargs=%s)" %
                                        (args[0], kwargs), resp.status_code, resp.content)
-        logger.info("resp cookies ------ %s", resp.cookies)
         json_resp = []
         if len(resp.content) > 0:
             json_resp = json.loads(resp.content)
-        logger.info("URL: %s (kwargs=%s), Status: %s, Resp: %s", args[0], kwargs, resp.status_code, json_resp)
+        # logger.info("URL: %s (kwargs=%s), Status: %s, Resp: %s",
+        #             args[0], kwargs, resp.status_code, json_resp)
         return json_resp
 
 
-@memoized
-def avisession(request, tenant = None):
+avi_sessions = {}
+
+
+def session_cleanup():
+    for token in avi_sessions.keys():
+        if token.expires < datetime.datetime.now(tz=pytz.utc):
+            avi_sessions.pop(token)
+    return
+
+
+def avisession(request, tenant=None):
     controller = getattr(settings, 'AVI_CONTROLLER_IP', None)
-    token = request.user.token.id
+    token = request.user.token
     username = request.user.username
     if not tenant:
         tenant = request.user.tenant_name
-    # username = "operator"
-    # password = "avi123"
-    # token = None
-    # tenant = None
-    # session = AviSession(controller, username=username, password=password, token=token, tenant=tenant)
-    session = AviSession(controller, username=username, token=token, tenant=tenant)
+    if token in avi_sessions and tenant in avi_sessions[token]:
+        return avi_sessions[token][tenant]
+    session = AviSession(controller, username=username, token=token.id,
+                         tenant=tenant)
+    if token not in avi_sessions:
+        avi_sessions[token] = {}
+    avi_sessions[token][tenant] = session
+    # print "adding session for user %s tenant %s" % (username, tenant)
+    session_cleanup()
     return session
 
 Cert = collections.namedtuple("Cert", ["id", "name", "cname", "iname", "algo", "self_signed", "expires"])
