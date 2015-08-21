@@ -183,9 +183,25 @@ class AssociateCertificateAction(workflows.Action):
     vip_cert = forms.ChoiceField(label=_("VIP Certificate"))
     pool_cert = forms.ChoiceField(label=_("Pool Certificate"), required=False)
     pool_proto = forms.CharField(widget=forms.HiddenInput())
+    choices = [('no', 'No'), ('yes', 'Yes')]
+    redirect_attrs = {'class': 'switchable', 'data-slug': 'redirect'}
+    redirect_choice = forms.ChoiceField(
+        label=_("Support and redirect HTTP traffic?"),
+        required=True,
+        choices=choices,
+        widget=forms.Select(attrs=redirect_attrs))
+    http_port = forms.IntegerField(
+        label=_("HTTP Port"),
+        required=False,
+        widget=forms.widgets.NumberInput(attrs={
+            'class': 'switched',
+            'data-switch-on': 'redirect',
+            'data-redirect-yes': 'Port Number',
+        }),
+        initial=80)
 
     def __init__(self, request, *args, **kwargs):
-        #print "request %s args %s kwargs %s" % (request, args, kwargs)
+        # print "request %s args %s kwargs %s" % (request, args, kwargs)
         super(AssociateCertificateAction, self).__init__(request, *args, **kwargs)
         certs = api.avi.certs_list(request, request.user.tenant_name)
         pool_cert_choices = [("", _("Select a Certificate"))]
@@ -205,10 +221,17 @@ class AssociateCertificateAction(workflows.Action):
         self.fields["vip_cert"].choices = pool_cert_choices
         self.fields["vip_cert"].initial = api.avi.get_vip_cert(request, args[0]["vip_id"])
         self.fields["vip_cert"].help_text = _(
-                      "VIP Certificate:\n"
-                      "A certificate that the load-balancer, as a server, "
-                      "presents to an end-user (or browser)\n\n"
-                      )
+            "VIP Certificate:\n"
+            "A certificate that the load-balancer, as a server, "
+            "presents to an end-user (or browser)\n\n"
+            )
+        self.fields["http_port"].help_text = _(
+            "HTTP Port:\n"
+            "If you want to support HTTP traffic on the same VIP, "
+            "please specify "
+            "a port for the HTTP Traffic. The HTTP requests are "
+            "automatically redirected to the HTTPS urls."
+        )
 
         self.fields["pool_proto"].initial = args[0]["pool_proto"]
         return
@@ -225,8 +248,10 @@ class AssociateCertificateAction(workflows.Action):
 
 class AssociateCertificateStep(workflows.Step):
     action_class = AssociateCertificateAction
-    contributes = ("pool_cert", "vip_cert", "pool_proto")
-    depends_on = ("pool_id", "vip_id", "pool_proto")
+    contributes = ("pool_cert", "vip_cert", "pool_proto", "redirect_choice",
+                   "http_port")
+    depends_on = ("pool_id", "vip_id", "pool_proto", "redirect_choice",
+                  "http_port")
 
     def contribute(self, data, context):
         context = super(AssociateCertificateStep, self).contribute(data, context)
