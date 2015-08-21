@@ -18,6 +18,8 @@ from django.utils.translation import ugettext_lazy as _
 from horizon import exceptions
 from horizon import tabs
 from horizon import messages
+from django.conf import settings
+import os
 
 from avidashboard import api
 
@@ -40,3 +42,42 @@ class CertificatesTab(tabs.TableTab):
             #exceptions.handle(self.tab_group.request,
             #                  _('Unable to retrieve certificates list.'))
         return certificates
+
+
+class AviUITab(tabs.Tab):
+    name = "Analytics"
+    slug = "analytics"
+    preload = False
+    template_set = False
+
+    def set_template(self):
+        if self.template_set:
+            return
+        self.template_set = True
+        fname = os.path.join(settings.TEMPLATE_DIRS[0], "avi_analytics.html")
+        with open(fname, "w+") as fh:
+            fh.write("<iframe src=\"https://")
+            fh.write("{{ controller_ip  }}")
+            fh.write("/#/authenticated/applications/dashboard?csrf_token=")
+            fh.write("{{ csrf_token }}")
+            fh.write("&session_id=")
+            fh.write("{{ session_id }}")
+            fh.write("&tenant_name=")
+            fh.write("{{ tenant_name }}\"")
+            fh.write("id=\"aviDashboard\" sandbox=\"allow-scripts"
+                     " allow-same-origin\" width=\"100%\""
+                     " height=\"600\"></iframe>\n")
+        return
+
+    def get_template_name(self, request):
+        self.set_template()
+        return "avi_analytics.html"
+
+    def get_context_data(self, request, **kwargs):
+        avi_session = api.avi.avisession(request)
+        return {
+            'controller_ip': avi_session.controller_ip,
+            'csrf_token': avi_session.sess.headers["X-CSRFToken"],
+            'session_id': avi_session.sess.cookies.get("sessionid"),
+            'tenant_name': avi_session.tenant
+        }

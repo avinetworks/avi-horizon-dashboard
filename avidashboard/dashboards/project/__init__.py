@@ -15,7 +15,8 @@
 # patch to create a new certificates tab
 from openstack_dashboard.dashboards.project.loadbalancers.tabs import LoadBalancerTabs
 from avidashboard.dashboards.project.loadbalancers.tabs import CertificatesTab
-LoadBalancerTabs.tabs += (CertificatesTab,)
+from avidashboard.dashboards.project.loadbalancers.tabs import AviUITab
+LoadBalancerTabs.tabs += (CertificatesTab, AviUITab)
 
 # patch to add relevant URLs
 from openstack_dashboard.dashboards.project.loadbalancers.urls import urlpatterns
