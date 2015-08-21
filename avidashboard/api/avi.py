@@ -260,6 +260,11 @@ def associate_certs(request, **kwargs):
         vip["ssl_profile_ref"] = def_profile
         vip["ssl_key_and_certificate_refs"] = [cert_url]
         vip["services"][0]['enable_ssl'] = True
+
+        # check and add new listener also
+        if kwargs.get("redirect_choice") == "yes":
+            vip["services"].append({"port": kwargs.get("http_port")})
+
         resp = sess.put("/api/virtualservice/%s" % vip_id, data=json.dumps(vip))
         logger.debug("VIP cert update resp: %s", resp)
     return
@@ -293,8 +298,13 @@ def disassociate_certs(request, **kwargs):
         for key in ["ssl_profile_ref", "ssl_key_and_certificate_refs"]:
             if vip.has_key(key):
                 vip.pop(key)
+        # remove non-ssl listeners and change current ssl listener to False
+        nsvcs = []
         for svc in vip['services']:
-            svc['enable_ssl'] = False
+            if svc["enable_ssl"]:
+                nsvcs.append(svc)
+                svc['enable_ssl'] = False
+        vip["services"] = nsvcs
         resp = sess.put("/api/virtualservice/%s" % vip_id, data=json.dumps(vip))
         logger.debug("VIP cert update resp: %s", resp)
     return
