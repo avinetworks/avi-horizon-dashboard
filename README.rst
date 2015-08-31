@@ -40,13 +40,14 @@ Howto
        avidashboard.enabled,      # ADD THIS LINE TOO
     ], HORIZON_CONFIG, INSTALLED_APPS)
 
-3. Add the IP address of the Avi Controller to your local_settings (typically in
+3. Add the IP address(es) of the Avi Controller to your local_settings (typically in
    openstack_dashboard/local/local_settings.py in development environment, or at
    /etc/openstack_dashboard/local_settings.py in a production environment).
    For example::
 
-    AVI_CONTROLLER_IP = "10.10.32.53"
-
+    AVI_CONTROLLER = {"RegionA": "regiona.avi-lbaas.example.net",
+                      "RegionB": "regionb.avi-lbaas.example.net", }
+                  
 4. Restart horizon. For example::
 
     $> apache2ctl restart
