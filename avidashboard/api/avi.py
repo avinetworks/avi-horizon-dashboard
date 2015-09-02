@@ -36,7 +36,9 @@ class AviResponseException(Exception):
         self.content = content
 
     def __str__(self):
-        return "Response code: %s; Content: %s; %s" % (self.resp_code, self.content, self.err_str)
+        return "Response code: %s; Content: %s; %s" % (self.resp_code,
+                                                       self.content,
+                                                       self.err_str)
 
 
 class AviSession():
@@ -48,7 +50,8 @@ class AviSession():
     keystone_token = None
     controller_ip = None
 
-    def __init__(self, controller_ip, username, password=None, token=None, tenant=None):
+    def __init__(self, controller_ip, username, password=None, token=None,
+                 tenant=None):
         self.sess = requests.Session()
         self.controller_ip = controller_ip
         self.username = username
@@ -62,9 +65,8 @@ class AviSession():
 
     def authenticate_session(self):
         resp = self.sess.get(self.prefix, verify=False, timeout=timeout)
-        logger.info("resp cookies: %s", requests.utils.dict_from_cookiejar(resp.cookies))
-        self.sess.headers.update({"X-CSRFToken": requests.utils.dict_from_cookiejar(resp.cookies)['csrftoken'],
-                                  "Referer": self.prefix})
+        self.update_csrf_token(resp)
+        self.sess.headers.update({"Referer": self.prefix})
         body = {"username": self.username}
         if not self.keystone_token:
             body["password"] = self.password
@@ -81,9 +83,9 @@ class AviSession():
         return
 
     def update_csrf_token(self, resp):
-        csrftoken = requests.utils.dict_from_cookiejar(resp.cookies).get('csrftoken', None)
-        if csrftoken:
-            self.sess.headers.update({"X-CSRFToken": csrftoken})
+        cookies = requests.utils.dict_from_cookiejar(resp.cookies)
+        if "csrftoken" in cookies:
+            self.sess.headers.update({"X-CSRFToken": cookies["csrftoken"]})
         return
 
     def get(self, url, *args, **kwargs):
@@ -103,7 +105,8 @@ class AviSession():
         self.update_csrf_token(resp)
         if resp.status_code >= 300:
             raise AviResponseException("URL: %s (kwargs=%s)" %
-                                       (args[0], kwargs), resp.status_code, resp.content)
+                                       (args[0], kwargs), resp.status_code,
+                                       resp.content)
         json_resp = []
         if len(resp.content) > 0:
             json_resp = json.loads(resp.content)
