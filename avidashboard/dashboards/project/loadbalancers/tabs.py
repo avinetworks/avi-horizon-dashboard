@@ -20,6 +20,7 @@ from horizon import tabs
 from horizon import messages
 from django.conf import settings
 import os
+import shutil
 
 from avidashboard import api
 
@@ -51,22 +52,17 @@ class AviUITab(tabs.Tab):
     template_set = False
 
     def set_template(self):
-        if self.template_set:
+        if AviUITab.template_set:
             return
-        self.template_set = True
-        fname = os.path.join(settings.TEMPLATE_DIRS[0], "avi_analytics.html")
-        with open(fname, "w+") as fh:
-            fh.write("<iframe src=\"https://")
-            fh.write("{{ controller_ip  }}")
-            fh.write("/#/authenticated/applications/dashboard?csrf_token=")
-            fh.write("{{ csrf_token }}")
-            fh.write("&session_id=")
-            fh.write("{{ session_id }}")
-            fh.write("&tenant_name=")
-            fh.write("{{ tenant_name }}\"")
-            fh.write("id=\"aviDashboard\" sandbox=\"allow-scripts"
-                     " allow-same-origin\" width=\"100%\""
-                     " height=\"600\"></iframe>\n")
+        template_dir = (os.path.dirname(os.path.abspath(__file__)) +
+                        "/../../../templates")
+        template_file = os.path.join(template_dir, "avi_analytics.html")
+        if not os.path.exists(template_file):
+            raise Exception("Missing Avi Tab Template")
+        dest_file = os.path.join(settings.TEMPLATE_DIRS[0],
+                                 "avi_analytics.html")
+        shutil.copy(template_file, dest_file)
+        AviUITab.template_set = True
         return
 
     def get_template_name(self, request):
