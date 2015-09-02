@@ -17,6 +17,8 @@ from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
 from django.utils.translation import ungettext_lazy
 
+from horizon import exceptions
+from horizon import messages
 from horizon import tables
 
 from openstack_dashboard import api
@@ -58,7 +60,7 @@ class DeleteCertificateLink(policy.PolicyTargetMixin,
 
     def delete(self, request, obj_id):
         try:
-            api.avi.delete_cert(request, obj_id)
+            avi.delete_cert(request, obj_id)
             messages.success(request, _('Deleted certificate %s') % obj_id)
         except Exception as e:
             exceptions.handle(request,
