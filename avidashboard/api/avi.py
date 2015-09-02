@@ -128,24 +128,26 @@ def session_cleanup():
 def avisession(request, tenant=None):
     avi_controller_cfg = getattr(settings, 'AVI_CONTROLLER', {})
     region = request.session['services_region']
-    if region in avi_controller_cfg:
-        controller = avi_controller_cfg[region]
-        token = request.user.token
-        username = request.user.username
-        if not tenant:
-            tenant = request.user.tenant_name
-        if token in avi_sessions and tenant in avi_sessions[token]\
-                and region in avi_sessions[token][tenant]:
-            return avi_sessions[token][tenant][region]
-        session = AviSession(controller, username=username, token=token.id,
-                            tenant=tenant)
-        if token not in avi_sessions:
-            avi_sessions[token] = {}
-            avi_sessions[token][tenant] = {}
-        avi_sessions[token][tenant][region] = session
-        # print "adding session for user %s tenant %s" % (username, tenant)
-        session_cleanup()
-        return session
+    if region not in avi_controller_cfg:
+        raise Exception("No Avi Controller Configured for Region %s" % region)
+    controller = avi_controller_cfg[region]
+    token = request.user.token
+    username = request.user.username
+    if not tenant:
+        tenant = request.user.tenant_name
+    if token in avi_sessions and tenant in avi_sessions[token]\
+            and region in avi_sessions[token][tenant]:
+        return avi_sessions[token][tenant][region]
+    session = AviSession(controller, username=username, token=token.id,
+                        tenant=tenant)
+    if token not in avi_sessions:
+        avi_sessions[token] = {}
+    if tenant not in avi_sessions[token]:
+        avi_sessions[token][tenant] = {}
+    avi_sessions[token][tenant][region] = session
+    # print "adding session for user %s tenant %s" % (username, tenant)
+    session_cleanup()
+    return session
 
 Cert = collections.namedtuple("Cert", ["id", "name", "cname", "iname", "algo", "self_signed", "expires"])
 
