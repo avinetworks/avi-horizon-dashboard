@@ -12,11 +12,16 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+from django.conf import settings
+
 # patch to create a new certificates tab
 from openstack_dashboard.dashboards.project.loadbalancers.tabs import LoadBalancerTabs
 from avidashboard.dashboards.project.loadbalancers.tabs import CertificatesTab
 from avidashboard.dashboards.project.loadbalancers.tabs import AviUITab
-LoadBalancerTabs.tabs += (CertificatesTab, AviUITab)
+LoadBalancerTabs.tabs += (CertificatesTab,)
+
+if getattr(settings, "AVI_ANALYTICS_TAB_ENABLED"):
+    LoadBalancerTabs.tabs += (AviUITab,)
 
 # patch to add relevant URLs
 from openstack_dashboard.dashboards.project.loadbalancers.urls import urlpatterns
