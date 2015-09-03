@@ -49,7 +49,12 @@ Howto
 
     AVI_CONTROLLER = {"RegionA": "regiona.avi-lbaas.example.net",
                       "RegionB": "regionb.avi-lbaas.example.net", }
+
+4. (Optional) Enable the Avi Analytics Tab by setting the following in your
+   local settings file::
+
+    AVI_ANALYTICS_TAB_ENABLED = True
                   
-4. Restart horizon. For example::
+5. Restart horizon. For example::
 
     $> apache2ctl restart
