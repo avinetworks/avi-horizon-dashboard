@@ -13,6 +13,10 @@
 # under the License.
 
 from django.conf import settings
+import os
+
+# add analytics templates
+settings.TEMPLATE_DIRS += (os.path.realpath(os.path.dirname(__file__)+ "/../../templates"),)
 
 # patch to create a new certificates tab
 from openstack_dashboard.dashboards.project.loadbalancers.tabs import LoadBalancerTabs
