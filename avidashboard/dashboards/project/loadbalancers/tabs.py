@@ -49,24 +49,8 @@ class AviUITab(tabs.Tab):
     name = "Analytics"
     slug = "analytics"
     preload = False
-    template_set = False
-
-    def set_template(self):
-        if AviUITab.template_set:
-            return
-        template_dir = (os.path.dirname(os.path.abspath(__file__)) +
-                        "/../../../templates")
-        template_file = os.path.join(template_dir, "avi_analytics.html")
-        if not os.path.exists(template_file):
-            raise Exception("Missing Avi Tab Template")
-        dest_file = os.path.join(settings.TEMPLATE_DIRS[0],
-                                 "avi_analytics.html")
-        shutil.copy(template_file, dest_file)
-        AviUITab.template_set = True
-        return
 
     def get_template_name(self, request):
-        self.set_template()
         return "avi_analytics.html"
 
     def get_context_data(self, request, **kwargs):
