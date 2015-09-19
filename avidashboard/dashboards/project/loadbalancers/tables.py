@@ -97,11 +97,12 @@ class AssociateCertificateLink(tables.LinkAction):
             return False
         # pool+vip proto is HTTP or HTTPS
         try:
-            v = avi.get_vip_cert(request, datum.vip_id)
+            vip = avi.get_vip(request, datum.vip_id)
+            cert = avi.get_vip_cert(vip)
         except:
             # this prevents non-avi providers
             return False
-        if not v:
+        if not cert:
             return True
         if datum.protocol == 'HTTP':
             return False
@@ -129,11 +130,12 @@ class DisassociateCertificateLink(tables.LinkAction):
             return False
         # pool+vip proto is HTTP or HTTPS
         try:
-            v = avi.get_vip_cert(request, datum.vip_id)
+            vip = avi.get_vip(request, datum.vip_id)
+            cert = avi.get_vip_cert(vip)
         except:
             # this prevents non-avi providers
             return False
-        if v:
+        if cert:
             return True
         if datum.protocol == 'HTTP':
             return False

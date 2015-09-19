@@ -81,13 +81,17 @@ from avidashboard.api import avi
 old_get_data = lbtables.UpdatePoolsRow.get_data
 
 
-def add_pool_cert(pool, request):
+def add_pool_vip_info(pool, request):
     pool.cert = None
     if pool.vip_id:
         try:
-            cert = avi.get_vip_cert(request, pool.vip_id)
+            vip = avi.get_vip(request, pool.vip_id)
+            cert = avi.get_vip_cert(vip)
             if cert:
                 pool.cert = cert
+            http_port = avi.get_vip_http_port(vip)
+            if http_port > 0:
+                pool.http_port = http_port
         except Exception as e:
             print "Error in obtaining certificate info: %s" % e
     return pool
@@ -95,7 +99,7 @@ def add_pool_cert(pool, request):
 
 def new_get_data(self, request, pool_id):
     pool = old_get_data(self, request, pool_id)
-    return add_pool_cert(pool, request)
+    return add_pool_vip_info(pool, request)
 
 
 lbtables.UpdatePoolsRow.get_data = new_get_data
@@ -109,6 +113,8 @@ def get_vip_name(pool):
     ret_string = old_get_vip_name(pool)
     if hasattr(pool, "cert") and pool.cert:
         ret_string += "\n<br/>\n Certificate: %s\n" % pool.cert
+        if hasattr(pool, "http_port") and pool.http_port > 0:
+            ret_string += "\n<br/>\n HTTP Redirect: Port %s\n" % pool.http_port
         ret_string = SafeText(ret_string)
     return ret_string
 
@@ -122,7 +128,7 @@ old_pool_list = lbaas._pool_list
 def new_pool_list(request, expand_subnet=False, expand_vip=False, **kwargs):
     plist = old_pool_list(request, expand_subnet, expand_vip, **kwargs)
     for pool in plist:
-        add_pool_cert(pool, request)
+        add_pool_vip_info(pool, request)
     return plist
 
 lbaas._pool_list = new_pool_list

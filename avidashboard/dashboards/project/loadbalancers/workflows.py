@@ -219,7 +219,8 @@ class AssociateCertificateAction(workflows.Action):
         else:
             del self.fields["pool_cert"]
         self.fields["vip_cert"].choices = pool_cert_choices
-        self.fields["vip_cert"].initial = api.avi.get_vip_cert(request, args[0]["vip_id"])
+        avi_vip = api.avi.get_vip(request, args[0]["vip_id"])
+        self.fields["vip_cert"].initial = api.avi.get_vip_cert(avi_vip)
         self.fields["vip_cert"].help_text = _(
             "VIP Certificate:\n"
             "A certificate that the load-balancer, as a server, "
@@ -293,7 +294,8 @@ class DisassociateCertificateAction(workflows.Action):
                 self.fields["pool_cert"].initial = pcert
         if not pcert:
             del self.fields["pool_cert"]
-        vcert = api.avi.get_vip_cert(request, args[0]["vip_id"])
+        vip = api.avi.get_vip(request, args[0]["vip_id"])
+        vcert = api.avi.get_vip_cert(vip)
         self.fields["vip_cert"].choices = [(vcert, vcert)]
         self.fields["vip_cert"].initial = vcert
         self.fields["pool_proto"].initial = args[0]["pool_proto"]

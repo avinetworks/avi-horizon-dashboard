@@ -215,13 +215,25 @@ def get_pool_cert(request, pool_id):
     return ""
 
 
-def get_vip_cert(request, vip_id):
+def get_vip(request, vip_id):
     sess = avisession(request, request.user.tenant_name)
     vip_id = "virtualservice-%s" % vip_id
     vip = sess.get("/api/virtualservice/%s?include_name=true" % vip_id)
-    if "ssl_key_and_certificate_refs" in vip and vip["ssl_key_and_certificate_refs"]:
+    return vip
+
+
+def get_vip_cert(vip):
+    if ("ssl_key_and_certificate_refs" in vip and
+            vip["ssl_key_and_certificate_refs"]):
         return vip["ssl_key_and_certificate_refs"][0].split("#")[1]
     return ""
+
+
+def get_vip_http_port(vip):
+    for svc in vip.get("services", []):
+        if not svc["enable_ssl"]:
+            return svc["port"]
+    return 0
 
 
 def associate_certs(request, **kwargs):
@@ -268,6 +280,7 @@ def associate_certs(request, **kwargs):
         resp = sess.put("/api/virtualservice/%s" % vip_id, data=json.dumps(vip))
         logger.debug("VIP cert update resp: %s", resp)
     return
+
 
 def disassociate_certs(request, **kwargs):
     sess = avisession(request, request.user.tenant_name)
