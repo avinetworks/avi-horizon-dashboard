@@ -27,11 +27,18 @@ Howto
    are in a production environment, most likely it is at
    /usr/share/openstack-dashboard/openstack_dashboard/settings.py
 
-   You have two options.
-
-   Option I: Import enabled and update settings::
+   Update settings with the following::
 
     import avidashboard.enabled    # ADD THIS LINE
+
+    ...
+
+    INSTALLED_APPS = [
+        'avidashboard',  # ADD THIS LINE
+        'openstack_dashboard',
+        ...
+        ...
+    ]
 
     ...
 
