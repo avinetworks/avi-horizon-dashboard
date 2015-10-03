@@ -24,8 +24,11 @@ from avidashboard.dashboards.project.loadbalancers.tabs import CertificatesTab
 from avidashboard.dashboards.project.loadbalancers.tabs import AviUITab
 LoadBalancerTabs.tabs += (CertificatesTab,)
 
-if getattr(settings, "AVI_ANALYTICS_TAB_ENABLED"):
+if getattr(settings, "AVI_ANALYTICS_TAB_ENABLED", False):
     LoadBalancerTabs.tabs += (AviUITab,)
+
+if getattr(settings, "AVI_LBAAS_FULL_UI", False):
+    LoadBalancerTabs.tabs = (AviUITab,)
 
 # patch to add relevant URLs
 from openstack_dashboard.dashboards.project.loadbalancers.urls import urlpatterns

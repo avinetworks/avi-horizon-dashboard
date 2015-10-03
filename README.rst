@@ -20,7 +20,11 @@ Howto
     python setup.py sdist
 
    This will create a python egg in the dist folder, which can be used to install
-   on the horizon machine or within horizon's  python virtual environment.
+   on the horizon machine or within horizon's python virtual environment. For
+   example, you can install the python package created using the pip command
+   as follows::
+
+    pip install dist/avidashboard-0.2.1.dev39.tar.gz
 
 2. Modify horizon's settings file to add avidashboard. If you are in a development
    environment, then this file is horizon/openstack_dashboard/settings.py. If you
@@ -53,6 +57,11 @@ Howto
 
     AVI_ANALYTICS_TAB_ENABLED = True
                   
-5. Restart horizon. For example::
+5. (Optional) Enable full LBaaS panel to be the Avi UI by setting the following in your
+   local settings file::
+
+    AVI_LBAAS_FULL_UI = True
+
+6. Restart horizon. For example::
 
     $> apache2ctl restart

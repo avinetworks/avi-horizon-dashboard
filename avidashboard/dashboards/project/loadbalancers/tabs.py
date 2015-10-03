@@ -55,9 +55,15 @@ class AviUITab(tabs.Tab):
 
     def get_context_data(self, request, **kwargs):
         avi_session = api.avi.avisession(request)
+        other_ui_options = "permissions=USER_MENU,NO_ACCESS"
+        if getattr(settings, "AVI_LBAAS_FULL_UI", False):
+            other_ui_options += "&read_only=False"
+        else:
+            other_ui_options += ",MAIN_MENU,NO_ACCESS,HELP,NO_ACCESS&read_only=True"
         return {
             'controller_ip': avi_session.controller_ip,
             'csrf_token': avi_session.sess.headers["X-CSRFToken"],
             'session_id': avi_session.sess.cookies.get("sessionid"),
-            'tenant_name': avi_session.tenant
+            'tenant_name': avi_session.tenant,
+            'other_ui_options': other_ui_options,
         }
