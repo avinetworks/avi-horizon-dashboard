@@ -20,6 +20,8 @@ settings.TEMPLATE_DIRS += (os.path.realpath(os.path.dirname(__file__)+ "/../../t
 
 # patch to create a new certificates tab
 from openstack_dashboard.dashboards.project.loadbalancers.tabs import LoadBalancerTabs
+from openstack_dashboard.dashboards.project.loadbalancers.panel import \
+    LoadBalancer as LoadBalancerPanel
 from avidashboard.dashboards.project.loadbalancers.tabs import CertificatesTab
 from avidashboard.dashboards.project.loadbalancers.tabs import AviUITab
 LoadBalancerTabs.tabs += (CertificatesTab,)
@@ -29,6 +31,8 @@ if getattr(settings, "AVI_ANALYTICS_TAB_ENABLED", False):
 
 if getattr(settings, "AVI_LBAAS_FULL_UI", False):
     LoadBalancerTabs.tabs = (AviUITab,)
+    # if the full ui is present, we want to make sure the panel shows up
+    LoadBalancerPanel.allowed = lambda x, y: True
 
 # patch to add relevant URLs
 from openstack_dashboard.dashboards.project.loadbalancers.urls import urlpatterns
