@@ -26,7 +26,7 @@ from django.conf import settings
 
 
 logger = logging.getLogger(__name__)
-timeout = 15
+timeout = 60
 
 
 class AviResponseException(Exception):
