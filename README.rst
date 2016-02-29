@@ -53,15 +53,38 @@ Howto
                       "RegionB": "regionb.avi-lbaas.example.net", }
 
 4. (Optional) Enable the Avi Analytics Tab by setting the following in your
-   local settings file::
+   local settings file (Make sure clickjacking protection is not enabled on
+   Avi Controller; see notes below)::
 
     AVI_ANALYTICS_TAB_ENABLED = True
                   
 5. (Optional) Enable full LBaaS panel to be the Avi UI by setting the following in your
-   local settings file::
+   local settings file (Make sure clickjacking protection is not enabled on
+   Avi Controller; see notes below)::
 
     AVI_LBAAS_FULL_UI = True
 
 6. Restart horizon. For example::
 
     $> apache2ctl restart
+
+
+Notes:
+-----
+
+Starting version 15.3, Avi Controller has clickjacking protection in place.
+Unfortunately, the Horizon integration with iframes does not work with the clickjacking
+protection in place. To disable this, please login to the Avi Controller and perform
+the following steps::
+
+   $> shell
+   Login: admin
+   Password:
+
+   : > configure systemconfiguration
+   : systemconfiguration> portal_configuration
+   : systemconfiguration:portal_configuration> no enable_clickjacking_protection
+   : systemconfiguration:portal_configuration> save
+   : systemconfiguration> save
+   : > exit
+   $>
