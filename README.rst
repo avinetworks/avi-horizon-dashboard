@@ -71,6 +71,14 @@ Howto
 
     AVI_LBAAS_FULL_UI = True
 
+   In Juno, there was a bug in _tab_group.html template file, which causes the title
+   of a tab to be shown in a tab group even when there is only tab in the tab group.
+   This is fixed in later versions. To get around this issue, please update this file.
+   (redhat: /usr/lib/python2.7/site-packages/horizon/templates/horizon/common/_tab_group.html,
+   ubuntu: /usr/lib/python2.7/dist-packages/horizon/templates/horizon/common/_tab_group.html).
+   Apply the line 5 and 13 from the Kilo version at
+   https://github.com/openstack/horizon/blob/stable/kilo/horizon/templates/horizon/common/_tab_group.html
+
 6. Restart horizon. For example::
 
     $> apache2ctl restart
