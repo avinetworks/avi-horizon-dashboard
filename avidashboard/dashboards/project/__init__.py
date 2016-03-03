@@ -32,7 +32,7 @@ if getattr(settings, "AVI_ANALYTICS_TAB_ENABLED", False):
 if getattr(settings, "AVI_LBAAS_FULL_UI", False):
     LoadBalancerTabs.tabs = (AviUITab,)
     # if the full ui is present, we want to make sure the panel shows up
-    LoadBalancerPanel.allowed = lambda x, y: True
+    LoadBalancerPanel.can_access = lambda x, y: True
 
 # patch to add relevant URLs
 from openstack_dashboard.dashboards.project.loadbalancers.urls import urlpatterns
