@@ -19,6 +19,7 @@ from horizon import exceptions
 from horizon import tabs
 from horizon import messages
 from django.conf import settings
+from django.utils.http import urlencode
 import os
 import shutil
 
@@ -64,6 +65,6 @@ class AviUITab(tabs.Tab):
             'controller_ip': avi_session.controller_ip,
             'csrf_token': avi_session.sess.headers["X-CSRFToken"],
             'session_id': avi_session.sess.cookies.get("sessionid"),
-            'tenant_name': avi_session.tenant,
+            'tenant_name': urlencode({avi_session.tenant: ""})[:-1],
             'other_ui_options': other_ui_options,
         }
