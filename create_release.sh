@@ -7,7 +7,7 @@ git push -f origin latest
 set -e
 for BRANCH in juno kilo master
 do
-    git checkout -B $BRANCH
+    git checkout $BRANCH
     rm -rf dist/
     python setup.py sdist
     mv dist/*tar.gz avidashboard-$BRANCH.tar.gz
