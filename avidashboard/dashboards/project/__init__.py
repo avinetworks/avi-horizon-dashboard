@@ -16,7 +16,12 @@ from django.conf import settings
 import os
 
 # add analytics templates
-settings.TEMPLATE_DIRS += (os.path.realpath(os.path.dirname(__file__)+ "/../../templates"),)
+if hasattr(settings, 'TEMPLATES'):
+    # the new style of django templates
+    settings.TEMPLATES[0]['DIRS'] += (os.path.realpath(os.path.dirname(__file__)+ "/../../templates"),)
+else:
+    # the old style of django templates
+    settings.TEMPLATE_DIRS += (os.path.realpath(os.path.dirname(__file__)+ "/../../templates"),)
 
 # patch to create a new certificates tab
 from openstack_dashboard.dashboards.project.loadbalancers.tabs import LoadBalancerTabs
