@@ -16,12 +16,12 @@ Howto
 -----
 
 1. Obtain the avidashboard PIP package for your version of horizon from the
-   `releases page`_
+   `releases page`_. For all versions liberty and above, please use the *master* release.
 .. _releases page: https://github.com/avinetworks/avi-horizon-dashboard/releases/tag/latest
 
 2. Install the python package using the pip command as follows::
 
-    pip install avidashboard-kilo.tar.gz
+    pip install avidashboard-master.tar.gz
 
    If you have a previous version of avidashboard, please uninstall that
    before installing the newer version::
@@ -33,7 +33,7 @@ Howto
    are in a production environment, most likely it is at
    /usr/share/openstack-dashboard/openstack_dashboard/settings.py
 
-   Import enabled and update settings::
+   Import enabled and update settings (only add the lines commented with "ADD THIS LINE")::
 
     import avidashboard.enabled    # ADD THIS LINE
 
@@ -49,7 +49,7 @@ Howto
     ...
 
 
-   For Juno Horizon,
+   For *Juno Horizon*,
    also add the following in the same file::
 
     INSTALLED_APPS = [
@@ -78,7 +78,7 @@ Howto
 
     AVI_LBAAS_FULL_UI = True
 
-   In Juno's version of Horizon, there was a bug in _tab_group.html template file, which causes the title of a tab to be shown in a tab group even when there is only tab in the tab group. This is fixed in later versions. To get around this issue, just rewrite _tab_group.html file with the Kilo version at https://github.com/openstack/horizon/blob/stable/kilo/horizon/templates/horizon/common/_tab_group.html.
+   In *Juno's* version of Horizon, there was a bug in _tab_group.html template file, which causes the title of a tab to be shown in a tab group even when there is only tab in the tab group. This is fixed in later versions. To get around this issue, just rewrite _tab_group.html file with the Kilo version at https://github.com/openstack/horizon/blob/stable/kilo/horizon/templates/horizon/common/_tab_group.html.
 
    Location of the _tab_group.html file:
     *redhat*: /usr/lib/python2.7/site-packages/horizon/templates/horizon/common/_tab_group.html,
