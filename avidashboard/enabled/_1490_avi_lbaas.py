@@ -17,10 +17,10 @@ PANEL = 'avi'
 # The name of the dashboard the PANEL associated with. Required.
 PANEL_DASHBOARD = 'project'
 # The name of the panel group the PANEL is associated with.
-PANEL_GROUP = 'avi-lbaas'
+PANEL_GROUP = 'network'
 
 ADD_EXCEPTIONS = {
 }
 
 #ADD_INSTALLED_APPS = ['avidashboard.dashboards.project']
-ADD_PANEL = 'avidashboard.dashboards.project.fake_panel.FakePanel'
+ADD_PANEL = 'avidashboard.dashboards.project.loadbalancers.panel.AviLBaaSPanel'

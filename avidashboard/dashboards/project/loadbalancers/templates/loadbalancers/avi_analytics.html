@@ -1,3 +1,9 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}{% trans "Load Balancers" %}{% endblock %}
+{% block page_header %}{% endblock %}
+
+{% block main %}
 <iframe src="https://{{ controller_ip  }}/#/login?csrf_token={{ csrf_token }}&session_id={{ session_id }}&tenant_name={{ tenant_name }}&{{ other_ui_options }}"
 		id="aviDashboard" 
 		sandbox="allow-scripts allow-same-origin" 
@@ -24,3 +30,4 @@
 	}
 })();
 </script>
+{% endblock %}

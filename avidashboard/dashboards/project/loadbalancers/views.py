@@ -15,53 +15,31 @@
 
 from django.utils.translation import ugettext_lazy as _
 
-from horizon import exceptions
-from horizon import workflows
-
-from openstack_dashboard import api
-
-from avidashboard.dashboards.project.loadbalancers \
-    import workflows as project_workflows
+from django.utils.http import urlencode
 
 import re
 import logging
 LOG = logging.getLogger(__name__)
 
 
-class AssociateCertificateView(workflows.WorkflowView):
-    workflow_class = project_workflows.AssociateCertificate
-
-    def get_initial(self):
-        initial = super(AssociateCertificateView, self).get_initial()
-        pool_id = self.kwargs['pool_id']
-        try:
-            pool = api.lbaas.pool_get(self.request, pool_id)
-            initial['pool_id'] = pool_id if pool.protocol != 'HTTP' else None
-            initial['vip_id'] = pool.vip_id
-            initial['pool_proto'] = pool.protocol
-        except Exception as e:
-            initial['vip_id'] = ''
-            msg = _('Unable to retrieve pool object and vip_id. %s') % e
-            exceptions.handle(self.request, msg)
-        return initial
-
-class DisassociateCertificateView(workflows.WorkflowView):
-    workflow_class = project_workflows.DisassociateCertificate
-
-    def get_initial(self):
-        initial = super(DisassociateCertificateView, self).get_initial()
-        pool_id = self.kwargs['pool_id']
-        try:
-            pool = api.lbaas.pool_get(self.request, pool_id)
-            initial['pool_id'] = pool_id if pool.protocol != 'HTTP' else None
-            initial['vip_id'] = pool.vip_id
-            initial['pool_proto'] = pool.protocol
-        except Exception as e:
-            initial['vip_id'] = ''
-            msg = _('Unable to retrieve pool object and vip_id. %s') % e
-            exceptions.handle(self.request, msg)
-        return initial
+from horizon.views import HorizonTemplateView
+from avidashboard import api
 
 
-class AddCertificateView(workflows.WorkflowView):
-    workflow_class = project_workflows.AddCertificate
+class IndexView(HorizonTemplateView):
+    template_name = 'project/loadbalancers/avi_analytics.html'
+    page_title = 'Load Balancers'
+
+    def get_context_data(self, **kwargs):
+        request = self.request
+        avi_session = api.avi.avisession(request)
+        other_ui_options = "permissions=USER_MENU,NO_ACCESS"
+        other_ui_options += "&read_only=False"
+        return {
+            'controller_ip': avi_session.controller_ip,
+            'csrf_token': avi_session.sess.headers["X-CSRFToken"],
+            'session_id': avi_session.sess.cookies.get("sessionid"),
+            'tenant_name': urlencode({avi_session.tenant: ""})[:-1],
+            'other_ui_options': other_ui_options,
+        }
+

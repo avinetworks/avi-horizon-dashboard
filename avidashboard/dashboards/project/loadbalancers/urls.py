@@ -20,10 +20,6 @@ from avidashboard.dashboards.project.loadbalancers import views
 
 urlpatterns = patterns(
     'avidashboard.dashboards.project.loadbalancers.views',
-    url(r'^addcertificate$', views.AddCertificateView.as_view(), name='addcertificate'),
-    url(r'^associatecertificate/(?P<pool_id>[^/]+)/$',
-        views.AssociateCertificateView.as_view(), name='associatecertificate'),
-    url(r'^disassociatecertificate/(?P<pool_id>[^/]+)/$',
-        views.DisassociateCertificateView.as_view(), name='disassociatecertificate'),
+    url('', views.IndexView.as_view(), name='index'),
 )
 
