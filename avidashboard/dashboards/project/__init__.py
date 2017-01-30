@@ -16,7 +16,9 @@ from django.conf import settings
 import os
 
 # add analytics templates
-if hasattr(settings, 'TEMPLATES'):
+if(hasattr(settings, 'TEMPLATES') and
+        settings.TEMPLATES and
+        'DIRS' in settings.TEMPLATES[0]):
     # the new style of django templates
     settings.TEMPLATES[0]['DIRS'] += (os.path.realpath(os.path.dirname(__file__)+ "/../../templates"),)
 else:
