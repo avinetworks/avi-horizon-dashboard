@@ -54,8 +54,19 @@ class AviUITab(tabs.Tab):
     def get_template_name(self, request):
         return "avi_analytics.html"
 
-    def get_context_data(self, request, **kwargs):
+    def get_tenant_name(self, avisession):
+        if self.request.user.tenant_name == "admin":
+            return "admin"
+        utl_resp = avisession.get("user-tenant-list").json()
+        for t in utl_resp["tenants"]:
+            if t["uuid"] == avisession.tenant_uuid:
+                return t["name"]
+        raise Exception("couldn't find tenant on Avi")
+
+    def get_context_data(self, **kwargs):
+        request = self.request
         avi_session = api.avi.avisession(request)
+        tenant_name = self.get_tenant_name(avi_session)
         other_ui_options = "permissions=USER_MENU,NO_ACCESS"
         if getattr(settings, "AVI_LBAAS_FULL_UI", False):
             other_ui_options += "&read_only=False"
@@ -63,8 +74,9 @@ class AviUITab(tabs.Tab):
             other_ui_options += ",MAIN_MENU,NO_ACCESS,HELP,NO_ACCESS&read_only=True"
         return {
             'controller_ip': avi_session.controller_ip,
-            'csrf_token': avi_session.sess.headers["X-CSRFToken"],
-            'session_id': avi_session.sess.cookies.get("sessionid"),
-            'tenant_name': urlencode({avi_session.tenant: ""})[:-1],
+            'csrf_token': avi_session.headers["X-CSRFToken"],
+            'session_id': avi_session.cookies.get("sessionid"),
+            'tenant_name': urlencode({tenant_name: ""})[:-1],
             'other_ui_options': other_ui_options,
         }
+

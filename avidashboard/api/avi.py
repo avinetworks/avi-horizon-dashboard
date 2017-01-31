@@ -17,12 +17,10 @@ from __future__ import absolute_import
 
 import collections
 import logging
-import json
-import requests
-import pytz
-import datetime
+import uuid
 
 from django.conf import settings
+from avidashboard.api.avi_api import ApiSession
 
 
 logger = logging.getLogger(__name__)
@@ -41,91 +39,12 @@ class AviResponseException(Exception):
                                                        self.err_str)
 
 
-class AviSession():
-    sess = None
-    prefix = ""
-    username = None
-    password = None
-    tenant = None
-    keystone_token = None
-    controller_ip = None
-
-    def __init__(self, controller_ip, username, password=None, token=None,
-                 tenant=None):
-        self.sess = requests.Session()
-        self.controller_ip = controller_ip
-        self.username = username
-        self.password = password
-        self.keystone_token = token
-        self.tenant = tenant
-
-        self.prefix = "https://%s/" % controller_ip
-        self.authenticate_session()
-        return
-
-    def authenticate_session(self):
-        resp = self.sess.get(self.prefix, verify=False, timeout=timeout)
-        self.update_csrf_token(resp)
-        self.sess.headers.update({"Referer": self.prefix})
-        body = {"username": self.username}
-        if not self.keystone_token:
-            body["password"] = self.password
-        else:
-            body["token"] = self.keystone_token
-        json_resp = self.post("login", body,timeout=timeout, verify=False)
-        if len(json_resp) <= 0:
-            raise Exception("Did not get any response during authentication")
-        # switch to a different tenant if needed
-        if self.tenant:
-            self.sess.headers.update({"X-Avi-Tenant": "%s" % self.tenant})
-        self.sess.headers.update({"Content-Type": "application/json"})
-        logger.info("sess headers: %s", self.sess.headers)
-        return
-
-    def update_csrf_token(self, resp):
-        cookies = requests.utils.dict_from_cookiejar(resp.cookies)
-        if "csrftoken" in cookies:
-            self.sess.headers.update({"X-CSRFToken": cookies["csrftoken"]})
-        return
-
-    def get(self, url, *args, **kwargs):
-        return self.call_api("get", self.prefix + url, *args, **kwargs)
-
-    def post(self, url, *args, **kwargs):
-        return self.call_api("post", self.prefix + url, *args, **kwargs)
-
-    def put(self, url, *args, **kwargs):
-        return self.call_api("put", self.prefix + url, *args, **kwargs)
-
-    def delete(self, url, *args, **kwargs):
-        return self.call_api("delete", self.prefix + url, *args, **kwargs)
-
-    def call_api(self, method, *args, **kwargs):
-        resp = getattr(self.sess, method)(*args, **kwargs)
-        self.update_csrf_token(resp)
-        if resp.status_code >= 300:
-            raise AviResponseException("URL: %s (kwargs=%s)" %
-                                       (args[0], kwargs), resp.status_code,
-                                       resp.content)
-        json_resp = []
-        if len(resp.content) > 0:
-            json_resp = json.loads(resp.content)
-        # logger.info("URL: %s (kwargs=%s), Status: %s, Resp: %s",
-        #             args[0], kwargs, resp.status_code, json_resp)
-        return json_resp
+def os2avi_uuid(obj_type, eid):
+    uid = str(uuid.UUID(eid))
+    return obj_type + "-" + uid
 
 
-avi_sessions = {}
-
-
-def session_cleanup():
-    for token in avi_sessions.keys():
-        if token.expires < datetime.datetime.now(tz=pytz.utc):
-            avi_sessions.pop(token)
-    return
-
-
-def avisession(request, tenant=None):
+def avisession(request):
     avi_controller_cfg = getattr(settings, 'AVI_CONTROLLER', {})
     region = request.session['services_region']
     if region not in avi_controller_cfg:
@@ -133,28 +52,21 @@ def avisession(request, tenant=None):
     controller = avi_controller_cfg[region]
     token = request.user.token
     username = request.user.username
-    if not tenant:
-        tenant = request.user.tenant_name
-    if token in avi_sessions and tenant in avi_sessions[token]\
-            and region in avi_sessions[token][tenant]:
-        return avi_sessions[token][tenant][region]
-    session = AviSession(controller, username=username, token=token.id,
-                        tenant=tenant)
-    if token not in avi_sessions:
-        avi_sessions[token] = {}
-    if tenant not in avi_sessions[token]:
-        avi_sessions[token][tenant] = {}
-    avi_sessions[token][tenant][region] = session
-    # print "adding session for user %s tenant %s" % (username, tenant)
-    session_cleanup()
+    if(hasattr(request.user, 'user_domain_name') and
+       request.user.user_domain_name and
+       request.user.user_domain_name != 'Default'):
+        username += "@%s" % request.user.user_domain_name
+    tenant_uuid = os2avi_uuid("tenant", request.user.tenant_id)
+    session = ApiSession(controller_ip=controller, username=username,
+                         token=token.id, tenant_uuid=tenant_uuid)
     return session
 
 Cert = collections.namedtuple("Cert", ["id", "name", "cname", "iname", "algo", "self_signed", "expires"])
 
 
 def certs_list(request, tenant_name):
-    sess = avisession(request, tenant_name)
-    certs = sess.get("/api/sslkeyandcertificate?type=SSL_CERTIFICATE_TYPE_VIRTUALSERVICE")
+    sess = avisession(request)
+    certs = sess.get("/api/sslkeyandcertificate?type=SSL_CERTIFICATE_TYPE_VIRTUALSERVICE").json()
     certificates = []
     for cert in certs.get('results', []):
         certificates.append(Cert(id=cert["uuid"],
@@ -170,55 +82,39 @@ def certs_list(request, tenant_name):
 
 def add_cert(request, **kwargs):
     # def add_ssl_key_and_cert(sess, certname, key_str, cert_str, passphrase):
-    sess = avisession(request, request.user.tenant_name)
-    logger.info("sess headers: %s", sess.sess.headers)
-    try:
-        resp = sess.post("/api/sslkeyandcertificate/importkeyandcertificate",
-                     data=json.dumps({"name": kwargs["name"],
-                                      "certificate": kwargs["cert_data"],
-                                      "key": kwargs["key_data"],
-                                      "key_passphrase": kwargs["passphrase"]}),
-                     verify=False, timeout=timeout)
-        print "resp: %s" % resp
-    except AviResponseException as aex:
-        if aex.content:
-            json_resp = json.loads(aex.content)
-            raise Exception(json_resp["error"])
-        else:
-            raise
+    sess = avisession(request)
+    resp = sess.post("/api/sslkeyandcertificate/importkeyandcertificate",
+                     data={"name": kwargs["name"],
+                           "certificate": kwargs["cert_data"],
+                           "key": kwargs["key_data"],
+                           "key_passphrase": kwargs["passphrase"]},
+                     verify=False, timeout=timeout).json()
+
     return {"id": resp['uuid']}
 
 
 def delete_cert(request, cert_id):
     # def add_ssl_key_and_cert(sess, certname, key_str, cert_str, passphrase):
-    sess = avisession(request, request.user.tenant_name)
-    logger.info("sess headers: %s", sess.sess.headers)
-    try:
-        resp = sess.delete("/api/sslkeyandcertificate/%s" % cert_id,
-                           verify=False, timeout=timeout)
-        print "resp: %s" % resp
-    except AviResponseException as aex:
-        if aex.content:
-            json_resp = json.loads(aex.content)
-            raise Exception(json_resp["error"])
-        else:
-            raise
+    sess = avisession(request)
+    resp = sess.delete("/api/sslkeyandcertificate/%s" % cert_id,
+                       verify=False, timeout=timeout).json()
+    print "resp: %s" % resp
     return {"id": cert_id}
 
 
 def get_pool_cert(request, pool_id):
-    sess = avisession(request, request.user.tenant_name)
+    sess = avisession(request)
     pool_id = "pool-%s" % pool_id
-    pool = sess.get("/api/pool/%s?include_name=true" % pool_id)
+    pool = sess.get("/api/pool/%s?include_name=true" % pool_id).json()
     if "ssl_key_and_certificate_ref" in pool:
         return pool["ssl_key_and_certificate_ref"].split("#")[1]
     return ""
 
 
 def get_vip(request, vip_id):
-    sess = avisession(request, request.user.tenant_name)
+    sess = avisession(request)
     vip_id = "virtualservice-%s" % vip_id
-    vip = sess.get("/api/virtualservice/%s?include_name=true" % vip_id)
+    vip = sess.get("/api/virtualservice/%s?include_name=true" % vip_id).json()
     return vip
 
 
@@ -237,19 +133,18 @@ def get_vip_http_port(vip):
 
 
 def associate_certs(request, **kwargs):
-    sess = avisession(request, request.user.tenant_name)
-    logger.info("sess headers: %s", sess.sess.headers)
+    sess = avisession(request)
     pool_proto = kwargs.get("pool_proto")
     pool_cert = kwargs.get("pool_cert")
     # get sslprofiles and sslcerts from avi
-    certs = sess.get("/api/sslkeyandcertificate").get("results", [])
-    profiles = sess.get("/api/sslprofile").get("results", [])
+    certs = sess.get("/api/sslkeyandcertificate").json().get("results", [])
+    profiles = sess.get("/api/sslprofile").json().get("results", [])
     def_profile = profiles[0]["url"]
     # update
     if pool_cert or pool_proto == 'HTTPS':
         upd = dict()
         pool_id = "pool-" + kwargs.get("pool_id")
-        pool = sess.get("/api/pool/%s" % pool_id)
+        pool = sess.get("/api/pool/%s" % pool_id).json()
         if not pool.get('ssl_profile_ref'):
             upd["ssl_profile_ref"] = def_profile
         if pool_cert:
@@ -258,16 +153,16 @@ def associate_certs(request, **kwargs):
             upd["ssl_key_and_certificate_ref"] = cert_url
         if upd:
             pool.update(upd)
-            resp = sess.put("/api/pool/%s" % pool_id, data=json.dumps(pool))
+            resp = sess.put("/api/pool/%s" % pool_id, data=pool).json()
             logger.debug("Pool cert update resp: %s", resp)
 
     # now update VIP
     if kwargs.get("vip_cert"):
         vip_id = "virtualservice-" + kwargs.get("vip_id")
-        vip = sess.get("/api/virtualservice/%s" % vip_id)
+        vip = sess.get("/api/virtualservice/%s" % vip_id).json()
         cert_url = next(iter([cert["url"] for cert in certs if cert["name"] == kwargs.get("vip_cert")]), "")
         # always set vip application_profile_ref to system secure http
-        ssl_app_profile = sess.get("api/applicationprofile?name=System-Secure-HTTP").get("results")[0]["url"]
+        ssl_app_profile = sess.get("api/applicationprofile?name=System-Secure-HTTP").json().get("results")[0]["url"]
         vip["application_profile_ref"] = ssl_app_profile
         vip["ssl_profile_ref"] = def_profile
         vip["ssl_key_and_certificate_refs"] = [cert_url]
@@ -277,35 +172,34 @@ def associate_certs(request, **kwargs):
         if kwargs.get("redirect_choice") == "yes":
             vip["services"].append({"port": kwargs.get("http_port")})
 
-        resp = sess.put("/api/virtualservice/%s" % vip_id, data=json.dumps(vip))
+        resp = sess.put("/api/virtualservice/%s" % vip_id, data=vip).json()
         logger.debug("VIP cert update resp: %s", resp)
     return
 
 
 def disassociate_certs(request, **kwargs):
-    sess = avisession(request, request.user.tenant_name)
-    logger.info("sess headers: %s", sess.sess.headers)
+    sess = avisession(request)
     pool_proto = kwargs.get("pool_proto")
     pool_cert = kwargs.get("pool_cert")
     # update
     if pool_cert or pool_proto == 'HTTPS':
         pool_id = "pool-" + kwargs.get("pool_id")
-        pool = sess.get("/api/pool/%s" % pool_id)
+        pool = sess.get("/api/pool/%s" % pool_id).json()
         # remove chosen sslcert - dont remove sslprofile
         for key in ["ssl_key_and_certificate_ref"]:
             if pool.has_key(key):
                 pool.pop(key)
-        resp = sess.put("/api/pool/%s" % pool_id, data=json.dumps(pool))
+        resp = sess.put("/api/pool/%s" % pool_id, data=pool).json()
         logger.debug("Pool cert update resp: %s", resp)
-        l4profs = sess.get("/api/applicationprofile?name=System-L4-Application").get("results", [])
+        l4profs = sess.get("/api/applicationprofile?name=System-L4-Application").json().get("results", [])
         def_profile = l4profs[0]["url"]
     else:
-        l7profs = sess.get("/api/applicationprofile?name=System-HTTP").get("results", [])
+        l7profs = sess.get("/api/applicationprofile?name=System-HTTP").json().get("results", [])
         def_profile = l7profs[0]["url"]
     # now update VIP
     if kwargs.get("vip_cert"):
         vip_id = "virtualservice-" + kwargs.get("vip_id")
-        vip = sess.get("/api/virtualservice/%s" % vip_id)
+        vip = sess.get("/api/virtualservice/%s" % vip_id).json()
         # always set vip application_profile_ref to system secure http
         vip["application_profile_ref"] = def_profile
         for key in ["ssl_profile_ref", "ssl_key_and_certificate_refs"]:
@@ -318,6 +212,6 @@ def disassociate_certs(request, **kwargs):
                 nsvcs.append(svc)
                 svc['enable_ssl'] = False
         vip["services"] = nsvcs
-        resp = sess.put("/api/virtualservice/%s" % vip_id, data=json.dumps(vip))
+        resp = sess.put("/api/virtualservice/%s" % vip_id, data=vip).json()
         logger.debug("VIP cert update resp: %s", resp)
     return
