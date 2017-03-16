@@ -27,7 +27,7 @@ from avidashboard import api
 
 
 class IndexView(HorizonTemplateView):
-    template_name = 'project/loadbalancers/avi_analytics.html'
+    template_name = 'project/aviloadbalancers/avi_analytics.html'
     page_title = 'Load Balancers'
 
     def get_tenant_name(self, avisession):

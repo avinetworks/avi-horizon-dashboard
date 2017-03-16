@@ -6,7 +6,7 @@ import horizon
 
 class AviLBaaSPanel(horizon.Panel):
     name = _("Load Balancers")
-    slug = 'loadbalancers'
+    slug = 'aviloadbalancers'
     permissions = ('openstack.services.network',)
 
     @staticmethod
