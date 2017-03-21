@@ -19,4 +19,6 @@ from setuptools import setup
 
 setup(
     setup_requires=['pbr'],
+    package_data={'avi': ['*.cfg', '*.conf', '*.crt', '*.json', '*.key',
+                          '*.pem', '*.xml', '*.yaml', '*.html']},
     pbr=True)
