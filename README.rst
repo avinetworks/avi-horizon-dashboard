@@ -16,7 +16,7 @@ Howto
 -----
 
 1. Obtain the avidashboard PIP package for your version of horizon from the
-   `releases page`_. For all versions liberty and above, please use the *master* release.
+   `releases page`_. For Liberty, Mitaka, and Newton, please use the *master* release.
 .. _releases page: https://github.com/avinetworks/avi-horizon-dashboard/releases/tag/latest
 
 2. Install the python package using the pip command as follows::
