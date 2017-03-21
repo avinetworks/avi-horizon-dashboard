@@ -78,6 +78,11 @@ Howto
 
     AVI_LBAAS_FULL_UI = True
 
+   If you want Avi UI in read-only mode, then set the following
+   instead of the above::
+
+    AVI_LBAAS_FULL_READONLY_UI = True
+
    In *Juno's* version of Horizon, there was a bug in _tab_group.html template file, which causes the title of a tab to be shown in a tab group even when there is only tab in the tab group. This is fixed in later versions. To get around this issue, just rewrite _tab_group.html file with the Kilo version at https://github.com/openstack/horizon/blob/stable/kilo/horizon/templates/horizon/common/_tab_group.html.
 
    Location of the _tab_group.html file:

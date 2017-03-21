@@ -13,6 +13,7 @@ class AviLBaaSPanel(horizon.Panel):
     def can_register():
         # network_config = getattr(settings, 'OPENSTACK_NEUTRON_NETWORK', {})
         full_ui = getattr(settings, 'AVI_LBAAS_FULL_UI', False)
+        readonly_ui = getattr(settings, 'AVI_LBAAS_FULL_READONLY_UI', False)
         # return network_config.get('enable_lb', True) and full_ui
-        return full_ui
+        return full_ui or readonly_ui
 

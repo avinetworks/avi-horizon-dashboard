@@ -16,6 +16,7 @@
 from django.utils.translation import ugettext_lazy as _
 
 from django.utils.http import urlencode
+from django.conf import settings
 
 import re
 import logging
@@ -44,7 +45,10 @@ class IndexView(HorizonTemplateView):
         avi_session = api.avi.avisession(request)
         tenant_name = self.get_tenant_name(avi_session)
         other_ui_options = "permissions=USER_MENU,NO_ACCESS"
-        other_ui_options += "&read_only=False"
+        if getattr(settings, "AVI_LBAAS_FULL_UI", False):
+            other_ui_options += "&read_only=False"
+        else:
+            other_ui_options += ",MAIN_MENU,NO_ACCESS,HELP,NO_ACCESS&read_only=True"
         return {
             'controller_ip': avi_session.controller_ip,
             'csrf_token': avi_session.headers["X-CSRFToken"],
