@@ -63,8 +63,7 @@ class AviUITab(tabs.Tab):
                 return t["name"]
         raise Exception("couldn't find tenant on Avi")
 
-    def get_context_data(self, **kwargs):
-        request = self.request
+    def get_context_data(self, request, **kwargs):
         avi_session = api.avi.avisession(request)
         tenant_name = self.get_tenant_name(avi_session)
         other_ui_options = "permissions=USER_MENU,NO_ACCESS"
