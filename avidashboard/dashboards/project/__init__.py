@@ -36,7 +36,7 @@ LoadBalancerTabs.tabs += (CertificatesTab,)
 if getattr(settings, "AVI_ANALYTICS_TAB_ENABLED", False):
     LoadBalancerTabs.tabs += (AviUITab,)
 
-if getattr(settings, "AVI_LBAAS_FULL_UI", False):
+if(getattr(settings, "AVI_LBAAS_FULL_UI", False) or getattr(settings, "AVI_LBAAS_FULL_READONLY_UI", False)):
     LoadBalancerTabs.tabs = (AviUITab,)
     # if the full ui is present, we want to make sure the panel shows up
     LoadBalancerPanel.allowed = lambda x, y: True
