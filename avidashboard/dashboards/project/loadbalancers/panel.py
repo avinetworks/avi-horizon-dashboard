@@ -5,7 +5,7 @@ import horizon
 
 
 class AviLBaaSPanel(horizon.Panel):
-    name = _("Load Balancers")
+    name = _(getattr(settings, 'AVI_LBAAS_PANEL_NAME', "Load Balancers"))
     slug = 'aviloadbalancers'
     permissions = ('openstack.services.network',)
 

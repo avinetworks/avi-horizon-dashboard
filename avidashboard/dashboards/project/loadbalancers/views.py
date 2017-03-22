@@ -29,7 +29,7 @@ from avidashboard import api
 
 class IndexView(HorizonTemplateView):
     template_name = 'project/aviloadbalancers/avi_analytics.html'
-    page_title = 'Load Balancers'
+    page_title = getattr(settings, "AVI_LBAAS_PANEL_NAME", 'Load Balancers')
 
     def get_tenant_name(self, avisession):
         if self.request.user.tenant_name == "admin":
