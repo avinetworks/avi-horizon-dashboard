@@ -4,12 +4,17 @@
 {% block page_header %}{% endblock %}
 
 {% block main %}
+{% if controller_ip %}
 <iframe src="https://{{ controller_ip  }}/#/login?csrf_token={{ csrf_token }}&session_id={{ session_id }}&tenant_name={{ tenant_name }}&{{ other_ui_options }}"
 		id="aviDashboard" 
 		sandbox="allow-scripts allow-same-origin" 
 		width="100%" 
 		height="600">
 </iframe>
+{% else %}
+Please contact the administrator.
+{% endif %}
+
 <script type="text/javascript">
 (function() {
 	var iframe = document.getElementById('aviDashboard');

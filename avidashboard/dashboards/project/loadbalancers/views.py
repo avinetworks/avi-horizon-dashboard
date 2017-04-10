@@ -42,18 +42,27 @@ class IndexView(HorizonTemplateView):
 
     def get_context_data(self, **kwargs):
         request = self.request
-        avi_session = api.avi.avisession(request)
-        tenant_name = self.get_tenant_name(avi_session)
+        controller_ip = ""
+        csrf_token = ""
+        session_id = ""
+        try:
+            avi_session = api.avi.avisession(request)
+            controller_ip = avi_session.controller_ip
+            csrf_token = avi_session.headers["X-CSRFToken"]
+            session_id = avi_session.cookies.get("sessionid")
+            tenant_name = self.get_tenant_name(avi_session)
+        except Exception as e:
+            LOG.warning("Couldn't create a session to Avi Controller: %s", e)
+            tenant_name = ""
         other_ui_options = "permissions=USER_MENU,NO_ACCESS"
         if getattr(settings, "AVI_LBAAS_FULL_UI", False):
             other_ui_options += "&read_only=False"
         else:
             other_ui_options += ",MAIN_MENU,NO_ACCESS,HELP,NO_ACCESS&read_only=True"
         return {
-            'controller_ip': avi_session.controller_ip,
-            'csrf_token': avi_session.headers["X-CSRFToken"],
-            'session_id': avi_session.cookies.get("sessionid"),
+            'controller_ip': controller_ip,
+            'csrf_token': csrf_token,
+            'session_id': session_id,
             'tenant_name': urlencode({tenant_name: ""})[:-1],
             'other_ui_options': other_ui_options,
         }
-
