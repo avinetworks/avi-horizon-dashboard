@@ -83,6 +83,11 @@ Howto
 
     AVI_LBAAS_FULL_READONLY_UI = True
 
+   The default name for the full LBaaS panel is "Loadbalancers". You can change it
+   to a custom name using the following setting::
+
+    AVI_LBAAS_PANEL_NAME = "Avi Loadbalancer"
+
    In *Juno's* version of Horizon, there was a bug in _tab_group.html template file, which causes the title of a tab to be shown in a tab group even when there is only tab in the tab group. This is fixed in later versions. To get around this issue, just rewrite _tab_group.html file with the Kilo version at https://github.com/openstack/horizon/blob/stable/kilo/horizon/templates/horizon/common/_tab_group.html.
 
    Location of the _tab_group.html file:
