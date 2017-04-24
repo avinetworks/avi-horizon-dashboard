@@ -71,6 +71,10 @@ Howto
    Avi Controller; see notes below)::
 
     AVI_ANALYTICS_TAB_ENABLED = True
+
+   Note that this option is only applicable for LBaaS v1.0 multi-tabbed panel.
+   Make sure that the LBaaS is enabled in local_settings.py: the variable enable_lb
+   should be set to True.
                   
 6. (Optional) Enable full LBaaS panel to be the Avi UI by setting the following in your
    local settings file (Make sure clickjacking protection is not enabled on
