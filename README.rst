@@ -6,18 +6,20 @@ Avi Horizon UI bits
 
 * Free software: Apache license
 
-Features
---------
+READ THIS CAREFULLY BEFORE INSTALLING
+-------------------------------------
 
-* TODO
+If you are using Neutron LBaaSv2 or not planning on exposing Neutron LBaaS at all in
+Horizon and expose only Avi UI, then these are the right INSTALLATION instructions.
+The following instructions add a new panel on Horizon dashboard under Project>Networks
+section for showing Avi's full UI in either READ-ONLY mode (users cannot make any edits
+to virtual services, pools, etc., but can view analytics, logs, and events) or
+READ-WRITE mode (users can edit all objects they have privileges to modify).
 
+Installation
+------------
 
-Howto
------
-
-1. Obtain the avidashboard PIP package for newton version of horizon from the
-   `releases page`_.
-.. _releases page: https://github.com/avinetworks/avi-horizon-dashboard/releases/tag/latest
+1. Obtain the avidashboard PIP package: https://github.com/avinetworks/avi-horizon-dashboard/releases/download/latest/avidashboard-newton.tar.gz
 
 2. Install the python package using the pip command as follows::
 
@@ -52,7 +54,7 @@ Howto
     AVI_CONTROLLER = {"RegionA": "regiona.avi-lbaas.example.net",
                       "RegionB": "regionb.avi-lbaas.example.net", }
 
-6. (Optional) Enable full LBaaS panel to be the Avi UI. 
+6. Enable full LBaaS panel to be the Avi UI.
    (Make sure clickjacking protection is not enabled on
    Avi Controller; see the notes at the end)::
 
@@ -63,6 +65,8 @@ Howto
 
     AVI_LBAAS_FULL_READONLY_UI = True
 
+   NOTE: Set only one of the above in your config file.
+
 7. (Optional) The default name for the full LBaaS panel is "Loadbalancers". You can change it
    to a custom name using the following setting::
 
@@ -71,6 +75,16 @@ Howto
 7. Restart horizon. For example::
 
     $> apache2ctl restart
+
+8. Make sure that the Avi Controller is installed with a properly signed certificate. Please
+   refer to the following KB on how to set that up: https://kb.avinetworks.com/docs/17.1/access-settings-for-clients-of-the-avi-controller/
+
+   Note that if the Avi Controller is not installed with a properly signed certificate, then many
+   browsers just show a blank page when Avi's iframe panel is opened in Horizon dashboard. As a
+   temporary workaround, you can open another browser tab and access the Avi Controller's URL
+   (https://<avi-controller-ip>/), and accept the self-signed certificate presented by the
+   Avi Controller. After that, please refresh the Horizon tab, and the Avi iframe will start
+   rendering properly.
 
 
 Notes:
