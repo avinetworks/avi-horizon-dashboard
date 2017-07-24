@@ -6,14 +6,23 @@ Avi Horizon UI bits
 
 * Free software: Apache license
 
-Features
---------
+READ THIS CAREFULLY BEFORE INSTALLING
+-------------------------------------
 
-* TODO
+If you are using Neutron LBaaSv2 or not planning on exposing Neutron LBaaS at all in
+Horizon and expose only Avi UI, then please follow the INSTALLLATION instructions
+at https://github.com/avinetworks/avi-horizon-dashboard/tree/newton.
 
+The following instructions are for enhancing multi-tabbed LBaaSv1 panel with the
+following features:
 
-Howto
------
+1. A new tab to manage SSL certificates
+2. A new tab to show Avi Analytics (in read only mode)
+3. Enhancements to "Pools" tab: Ability to associate and disassociate certificates and
+   ability to add an extra listening port (LBaaSv1 allows only one listening port per VIP).
+
+Installation
+------------
 
 1. Obtain the avidashboard PIP package for your version of horizon from the
    `releases page`_. For Liberty, Mitaka, and Newton, please use the *master* release.
@@ -96,6 +105,16 @@ Howto
 7. Restart horizon. For example::
 
     $> apache2ctl restart
+
+8. Make sure that the Avi Controller is installed with a properly signed certificate. Please
+   refer to the following KB on how to set that up: https://kb.avinetworks.com/docs/17.1/access-settings-for-clients-of-the-avi-controller/
+
+   Note that if the Avi Controller is not installed with a properly signed certificate, then many
+   browsers just show a blank page when Avi's iframe panel is opened in Horizon dashboard. As a
+   temporary workaround, you can open another browser tab and access the Avi Controller's URL
+   (https://<avi-controller-ip>/), and accept the self-signed certificate presented by the
+   Avi Controller. After that, please refresh the Horizon tab, and the Avi iframe will start
+   rendering properly.
 
 
 Notes:
