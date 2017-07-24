@@ -1,24 +1,37 @@
-#!/usr/bin/env python
-# Copyright (c) 2015 Avi Networks
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#    http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
-# implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+import os
+import time
+from setuptools import setup, find_packages
 
-# THIS FILE IS MANAGED BY THE GLOBAL REQUIREMENTS REPO - DO NOT EDIT
-from setuptools import setup
+# allow setup.py to be run from any path
+os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
+
+if os.path.exists("./VERSION"):
+    with open("./VERSION", "r") as f:
+        AVI_PIP_VERSION = f.readline()
+else:
+    ct = time.gmtime()
+    date = "%d%02d%02d" % (ct.tm_year, ct.tm_mon, ct.tm_mday)
+    AVI_PIP_VERSION = '17.2b' + date
+    with open("./VERSION", "w+") as f:
+        f.write("%s" % AVI_PIP_VERSION)
 
 setup(
-    setup_requires=['pbr'],
+    name = 'avidashboard_panel',
+    version = AVI_PIP_VERSION,
+    packages = find_packages(),
+    description = 'Avi Horizon Dashboard Plugin for LBaaSv1 Panel.',
+    url = 'http://avinetworks.com/',
+    author = 'Avi Networks',
+    author_email = 'support@avinetworks.com',
+    classifiers = [
+        'Operating System :: OS Independent',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 2.7',
+        'Topic :: Internet :: WWW/HTTP',
+        'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
+    ],
+    include_package_data=True,
+    install_requires = [''],
     package_data={'avi': ['*.cfg', '*.conf', '*.crt', '*.json', '*.key',
                           '*.pem', '*.xml', '*.yaml', '*.html']},
-    pbr=True)
+)
