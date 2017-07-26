@@ -9,9 +9,9 @@ Avi Horizon UI bits
 READ THIS CAREFULLY BEFORE INSTALLING
 -------------------------------------
 
-If you are using Neutron LBaaSv2 or not planning on exposing Neutron LBaaS at all in
-Horizon and expose only Avi UI, then please follow the INSTALLLATION instructions
-at https://github.com/avinetworks/avi-horizon-dashboard/tree/newton.
+**NOTE:** If you are using Neutron LBaaSv2 or plan to expose only Avi UI to
+your horizon users, then please follow the INSTALLLATION instructions
+at https://github.com/avinetworks/avi-horizon-dashboard/tree/panel/README.rst.
 
 The following instructions are for enhancing multi-tabbed LBaaSv1 panel with the
 following features:
@@ -24,18 +24,15 @@ following features:
 Installation
 ------------
 
-1. Obtain the avidashboard PIP package for your version of horizon from the
-   `releases page`_. For Liberty, Mitaka, and Newton, please use the *master* release.
-.. _releases page: https://github.com/avinetworks/avi-horizon-dashboard/releases/tag/latest
+1. Obtain the avidashboard PIP package for "tabs" from the releases page: https://github.com/avinetworks/avi-horizon-dashboard/releases/
+   We also distribute Debian packages on the releases page.
 
 2. Install the python package using the pip command as follows::
 
-    pip install avidashboard-master.tar.gz
+    pip install --upgrade avidashboard-tabs.tar.gz
 
-   If you have a previous version of avidashboard, please uninstall that
-   before installing the newer version::
-
-    pip uninstall avidashboard
+   If you have a previous version of avidashboard, the above command will remove it
+   and install this newer version.
 
 3. Modify horizon's settings file to add avidashboard. If you are in a development
    environment, then this file is horizon/openstack_dashboard/settings.py. If you
