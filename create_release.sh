@@ -1,9 +1,9 @@
 #!/bin/bash
 set -x
 assets=""
-#git tag -d latest
-#git tag latest
-#git push -f origin latest
+git tag -d latest
+git tag latest
+git push -f origin latest
 set -e
 for BRANCH in tabs panel
 do
@@ -19,12 +19,12 @@ do
     # debian package
     python setup.py --command-packages=stdeb.command debianize
     dpkg-buildpackage -b -us -uc -d
-    fname=`ls ../*avidashboard*deb`
+    fname=`cd .. && ls *avidashboard*deb`
     assets="$assets -a $fname#debian-package-$BRANCH"
     rm -rf debian/ build/ ../*avidashboard*changes
-    cp $fname ./
+    cp ../$fname ./
 done
 git checkout master
 echo "$assets"
-#/root/utils/hub release delete latest
-#/root/utils/hub release create $assets -F ReleaseNote latest
+/root/utils/hub release delete latest
+/root/utils/hub release create $assets -F ReleaseNote latest
