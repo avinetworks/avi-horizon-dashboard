@@ -1,3 +1,10 @@
 Latest Release
 
-Please see the README file for installation instructions.
+If you are using LBaaSv1 and want Avi enhancements to the LBaaSv1 screens,
+please use the packages named with the suffix "tabs". Please follow
+the installation instructions at https://github.com/avinetworks/avi-horizon-dashboard/blob/master/README.rst
+
+If you are using LBaaSv2 or want to expose Avi's UI as a panel in your
+Horizon, then please use the packages named with suffix "panel". Please
+follow the installation instructions at https://github.com/avinetworks/avi-horizon-dashboard/blob/panel/README.rst
+

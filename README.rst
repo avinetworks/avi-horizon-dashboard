@@ -1,8 +1,8 @@
 ===============================
-avidashboard
+Avi Plugin for OpenStack Dashboard (Horizon)
 ===============================
 
-Avi Horizon UI bits
+Avi Horizon UI plugin
 
 * Free software: Apache license
 
