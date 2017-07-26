@@ -2,7 +2,7 @@
 avidashboard
 ===============================
 
-Avi Horizon UI bits
+Avi Horizon UI bits: Adds a new Panel
 
 * Free software: Apache license
 
@@ -11,7 +11,7 @@ READ THIS CAREFULLY BEFORE INSTALLING
 
 If you are using Neutron LBaaSv2 or not planning on exposing Neutron LBaaS at all in
 Horizon and expose only Avi UI, then these are the right INSTALLATION instructions.
-The following instructions add a new panel on Horizon dashboard under Project>Networks
+The following instructions add a new **panel** on Horizon dashboard under Project>Networks
 section for showing Avi's full UI in either READ-ONLY mode (users cannot make any edits
 to virtual services, pools, etc., but can view analytics, logs, and events) or
 READ-WRITE mode (users can edit all objects they have privileges to modify).
@@ -19,11 +19,12 @@ READ-WRITE mode (users can edit all objects they have privileges to modify).
 Installation
 ------------
 
-1. Obtain the avidashboard PIP package: https://github.com/avinetworks/avi-horizon-dashboard/releases/download/latest/avidashboard-newton.tar.gz
+1. Obtain the avidashboard PIP package for "panel" from the releases page: https://github.com/avinetworks/avi-horizon-dashboard/releases/.
+   We also distribute a Debian package for "panel" code on the same page.
 
 2. Install the python package using the pip command as follows::
 
-    pip install --upgrade avidashboard-newton.tar.gz
+    pip install --upgrade avidashboard-panel.tar.gz
 
    In the above command, "--upgrade" option ensures that the newly downloaded
    version overwrites any other version of avidashboard that already exists.
@@ -65,7 +66,7 @@ Installation
 
     AVI_LBAAS_FULL_READONLY_UI = True
 
-   NOTE: Set only one of the above in your config file.
+   **NOTE**: Set only one of the above in your config file.
 
 7. (Optional) The default name for the full LBaaS panel is "Loadbalancers". You can change it
    to a custom name using the following setting::
