@@ -33,29 +33,33 @@ Installation
    openstack_dashboard/local/local_settings.py in development environment, or
    /etc/openstack_dashboard/local_settings.py in a production environment.
 
-4. Add the following code to create a file in "enabled" directory so that
+4. Add the following code into local_settings.py at the end so that
    Avi code gets imported into Horizon as well::
-    
-    try:
-        from openstack_dashboard.settings import __file__ as ods_file
-        with open(os.path.dirname(os.path.realpath(ods_file)) + "/enabled/_1490_avi_lbaas.py", "w+") as f:
-            f.write("""
-    PANEL = 'avi'
-    PANEL_DASHBOARD = 'project'
-    PANEL_GROUP = 'network'
-    ADD_EXCEPTIONS = {}
-    ADD_PANEL = 'avidashboard.dashboards.project.loadbalancers.panel.AviLBaaSPanel'
-    """)
-    except Exception as e:
-        print "Avi Failure: %s" % e
 
-5. Add the IP address(es) of the Avi Controller.
+    # for enabling Avi Dashboard's panel
+    from openstack_dashboard.utils import settings as utsettings
+    import avidashboard.enabled
+    orig_func = utsettings.update_dashboards
+
+    def new_update_dashboards(modules, config, apps):
+        modules.append(avidashboard.enabled)
+        return orig_func(modules, config, apps)
+
+    utsettings.update_dashboards = new_update_dashboards
+
+   Note that there is a bug in Mitaka code, later fixed in Newton code
+   (https://github.com/openstack/horizon/commit/ea92e735829ae4271fcbae932f69ffdbda268546),
+   that causes Avi panel to show at the top of the list under "Network" section
+   instead of at the bottom. You can either use Newton Horizon code or apply
+   the fix from the commit referenced above.
+    
+5. Add the IP address(es) of the Avi Controller in local_settings.py.
    For example::
 
     AVI_CONTROLLER = {"RegionA": "regiona.avi-lbaas.example.net",
                       "RegionB": "regionb.avi-lbaas.example.net", }
 
-6. Enable full LBaaS panel to be the Avi UI.
+6. Enable full LBaaS panel to be the Avi UI in local_settings.py.
    (Make sure clickjacking protection is not enabled on
    Avi Controller; see the notes at the end)::
 
@@ -69,7 +73,7 @@ Installation
    **NOTE**: Set only one of the above in your config file.
 
 7. (Optional) The default name for the full LBaaS panel is "Loadbalancers". You can change it
-   to a custom name using the following setting::
+   to a custom name by adding the following setting to local_settings.py::
 
     AVI_LBAAS_PANEL_NAME = "Avi Loadbalancer"
 
