@@ -47,28 +47,16 @@ if [ "$KEYSTONE_VERSION" = "v3" ]; then
     echo 'OPENSTACK_API_VERSIONS = {"identity": 3,"image": 2,"volume": 2,}' >> openstack_dashboard/local/local_settings.py
 fi
 
-# enabled via local settings
-cat << EOF > ls_change
-try:
-    from openstack_dashboard.settings import __file__ as ods_file
-    with open(os.path.dirname(os.path.realpath(ods_file)) + "/enabled/_1490_avi_lbaas.py", "w+") as f:
-        f.write("""
-PANEL = 'avi'
-# The name of the dashboard the PANEL associated with. Required.
-PANEL_DASHBOARD = 'project'
-# The name of the panel group the PANEL is associated with.
-PANEL_GROUP = 'network'
+cat << EOF >> openstack_dashboard/local/local_settings.py
 
-ADD_EXCEPTIONS = {
-}
-
-#ADD_INSTALLED_APPS = ['avidashboard.dashboards.project']
-ADD_PANEL = 'avidashboard.dashboards.project.loadbalancers.panel.AviLBaaSPanel'
-""")
-except Exception as e:
-    print "Avi Failure: %s" % e
+# for enabling Avi Dashboard's panel
+from openstack_dashboard.utils import settings as utsettings
+import avidashboard.enabled
+orig_func = utsettings.update_dashboards
+def new_update_dashboards(modules, config, apps):
+    modules.append(avidashboard.enabled)
+    return orig_func(modules, config, apps)
+utsettings.update_dashboards = new_update_dashboards
 EOF
-
-sed -ie "14r ls_change" openstack_dashboard/local/local_settings.py
 
 ./run_tests.sh --runserver 0.0.0.0:9000
