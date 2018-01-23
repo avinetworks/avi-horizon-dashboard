@@ -5,7 +5,7 @@
 
 {% block main %}
 {% if controller_ip %}
-<iframe src="https://{{ controller_ip  }}/#/login?csrf_token={{ csrf_token }}&session_id={{ session_id }}&tenant_name={{ tenant_name }}&{{ other_ui_options }}"
+<iframe src="https://{{ controller_ip  }}/#!/login?csrf_token={{ csrf_token }}&session_id={{ session_id }}&tenant_name={{ tenant_name }}&{{ other_ui_options }}"
 		id="aviDashboard" 
 		sandbox="allow-scripts allow-same-origin" 
 		width="100%" 
