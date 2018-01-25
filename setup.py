@@ -19,7 +19,7 @@ setup(
     name = 'avidashboard_panel',
     version = AVI_PIP_VERSION,
     packages = find_packages(),
-    description = 'Avi Horizon Dashboard Plugin for LBaaSv1 Panel.',
+    description = 'Avi Horizon Dashboard Plugin to provide an explicit Avi LBaaS Panel.',
     url = 'http://avinetworks.com/',
     author = 'Avi Networks',
     author_email = 'support@avinetworks.com',
@@ -32,6 +32,7 @@ setup(
     ],
     include_package_data=True,
     install_requires = [''],
-    package_data={'avi': ['*.cfg', '*.conf', '*.crt', '*.json', '*.key',
+    package_data={'avidashboard': ['*.cfg', '*.conf', '*.crt', '*.json', '*.key',
                           '*.pem', '*.xml', '*.yaml', '*.html']},
+    data_files = [('', ['VERSION'])],
 )
