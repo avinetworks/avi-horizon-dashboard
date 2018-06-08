@@ -12,14 +12,10 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from django.conf.urls import patterns
 from django.conf.urls import url
 
 from avidashboard.dashboards.project.loadbalancers import views
 
-
-urlpatterns = patterns(
-    'avidashboard.dashboards.project.loadbalancers.views',
+urlpatterns = [
     url('', views.IndexView.as_view(), name='index'),
-)
-
+]
