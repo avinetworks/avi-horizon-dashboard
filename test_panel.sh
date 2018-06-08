@@ -1,9 +1,10 @@
 set -e
 set -x
 
-HORIZON_BRANCH=${HORIZON_BRANCH:-"origin/stable/newton"}
+HORIZON_BRANCH=${HORIZON_BRANCH:-"origin/stable/pike"}
 AVI_CONTROLLER=${AVI_CONTROLLER:-"{'RegionOne': '10.10.25.201'}"}
-OS_CONTROLLER=${OS_CONTROLLER:-"10.10.37.183"}
+#OS_CONTROLLER=${OS_CONTROLLER:-"10.10.37.183"}
+OS_CONTROLLER=${OS_CONTROLLER:-"10.10.33.218"} #anant pike
 # v2 or v3
 KEYSTONE_VERSION=${KEYSTONE_VERSION:-v3}
 # rerun -- set it to true, when runnig second time for the same branch
@@ -36,6 +37,7 @@ sed -i "s/\#ALLOWED_HOSTS = \['horizon.example.com', \]/ALLOWED_HOSTS = \['\*',\
 sed -i "s/OPENSTACK_HOST = \"127.0.0.1\"/OPENSTACK_HOST = \"$OS_CONTROLLER\"/g" openstack_dashboard/local/local_settings.py
 
 .venv/bin/pip install ../dist/avidashboard*
+echo "" >> openstack_dashboard/local/local_settings.py
 echo "AVI_LBAAS_FULL_UI = True" >> openstack_dashboard/local/local_settings.py
 echo "AVI_CONTROLLER = $AVI_CONTROLLER" >> openstack_dashboard/local/local_settings.py
 echo "AVI_LBAAS_PANEL_NAME = 'Avi LB'"  >> openstack_dashboard/local/local_settings.py
