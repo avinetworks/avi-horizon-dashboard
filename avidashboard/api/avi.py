@@ -21,6 +21,8 @@ import uuid
 
 from django.conf import settings
 from avidashboard.api.avi_api import ApiSession
+from openstack_dashboard.api import base as openstack_api_base
+from urlparse import urlparse
 
 
 logger = logging.getLogger(__name__)
@@ -45,11 +47,20 @@ def os2avi_uuid(obj_type, eid):
 
 
 def avisession(request):
-    avi_controller_cfg = getattr(settings, 'AVI_CONTROLLER', {})
     region = request.session['services_region']
-    if region not in avi_controller_cfg:
-        raise Exception("No Avi Controller Configured for Region %s" % region)
-    controller = avi_controller_cfg[region]
+    controller = get_controller_url(request, region=region)
+    controller_port = None
+
+    if controller:
+        if controller.startswith('http'):
+            avi_endpoint = urlparse(controller)
+            controller = avi_endpoint.hostname
+
+            if hasattr(avi_endpoint, 'port'):
+                controller_port = avi_endpoint.port
+    else:
+        raise Exception("No Avi controller configured for region %s" % region)
+
     token = request.user.token
     username = request.user.username
     if(hasattr(request.user, 'user_domain_name') and
@@ -58,7 +69,8 @@ def avisession(request):
         username += "@%s" % request.user.user_domain_name
     tenant_uuid = os2avi_uuid("tenant", request.user.tenant_id)
     session = ApiSession(controller_ip=controller, username=username,
-                         token=token.id, tenant_uuid=tenant_uuid)
+                         token=token.id, tenant_uuid=tenant_uuid,
+                         port=controller_port)
     return session
 
 Cert = collections.namedtuple("Cert", ["id", "name", "cname", "iname", "algo", "self_signed", "expires"])
@@ -109,6 +121,28 @@ def get_pool_cert(request, pool_id):
     if "ssl_key_and_certificate_ref" in pool:
         return pool["ssl_key_and_certificate_ref"].split("#")[1]
     return ""
+
+
+def get_controller_url(request, region=None, endpoint_type=None):
+    """Find and return Avi controller URL."""
+    if not region:
+        region = request.user.services_region
+
+    avi_controller_cfg = getattr(settings, 'AVI_CONTROLLER', {})
+    controller = None
+
+    if region in avi_controller_cfg:
+        controller = avi_controller_cfg[region]
+    else:
+        try:
+            # Query Keystone for avi-lbaas URL
+            controller = openstack_api_base.url_for(
+                request=request, service_type='avi-lbaas', region=region,
+                endpoint_type=endpoint_type)
+        except Exception as exp:
+            pass
+
+    return controller
 
 
 def get_vip(request, vip_id):
