@@ -1,7 +1,7 @@
 set -e
 set -x
 
-HORIZON_BRANCH=${HORIZON_BRANCH:-"origin/stable/pike"}
+HORIZON_BRANCH=${HORIZON_BRANCH:-"origin/stable/queens"}
 AVI_CONTROLLER=${AVI_CONTROLLER:-"{'RegionOne': '10.10.25.201'}"}
 #OS_CONTROLLER=${OS_CONTROLLER:-"10.10.37.183"}
 OS_CONTROLLER=${OS_CONTROLLER:-"10.10.33.218"} #anant pike
@@ -10,6 +10,7 @@ KEYSTONE_VERSION=${KEYSTONE_VERSION:-v3}
 # rerun -- set it to true, when runnig second time for the same branch
 # this avoids needing to download the horizon code again
 RERUN=${RERUN:-false}
+USETOX=${USETOX:-false}
 
 # compile horizon plugin
 rm -rf dist
@@ -25,10 +26,14 @@ cd horizon/
 
 if [ "$RERUN" = false ]; then
     git checkout $HORIZON_BRANCH
-    set +e
-    ./run_tests.sh --runserver 0.0.0.0:9000
-    set -e
-    .venv/bin/pip install --upgrade pip
+    if [ "$USETOX" = false ]; then
+        set +e
+        ./run_tests.sh --runserver 0.0.0.0:9000
+        set -e
+        .venv/bin/pip install --upgrade pip
+    else
+        TOXENV=py27dj110 tox --notest
+    fi
 fi
 
 # config
@@ -36,7 +41,13 @@ cp openstack_dashboard/local/local_settings.py.example openstack_dashboard/local
 sed -i "s/\#ALLOWED_HOSTS = \['horizon.example.com', \]/ALLOWED_HOSTS = \['\*',\]/g" openstack_dashboard/local/local_settings.py
 sed -i "s/OPENSTACK_HOST = \"127.0.0.1\"/OPENSTACK_HOST = \"$OS_CONTROLLER\"/g" openstack_dashboard/local/local_settings.py
 
-.venv/bin/pip install ../dist/avidashboard*
+
+if [ "$USETOX" = false ]; then
+    .venv/bin/pip install ../dist/avidashboard*
+else
+    .tox/py27dj110/bin/pip install ../dist/avidashboard*
+fi
+
 echo "" >> openstack_dashboard/local/local_settings.py
 echo "AVI_LBAAS_FULL_UI = True" >> openstack_dashboard/local/local_settings.py
 echo "AVI_CONTROLLER = $AVI_CONTROLLER" >> openstack_dashboard/local/local_settings.py
@@ -61,4 +72,8 @@ def new_update_dashboards(modules, config, apps):
 utsettings.update_dashboards = new_update_dashboards
 EOF
 
-./run_tests.sh --runserver 0.0.0.0:9000
+if [ "$USETOX" = false ]; then
+    ./run_tests.sh --runserver 0.0.0.0:9000
+else
+    .tox/py27dj110/bin/python ./manage.py runserver 0.0.0.0:9000
+fi
