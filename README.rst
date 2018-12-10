@@ -1,90 +1,62 @@
 ===============================
-Avi Plugin for OpenStack Dashboard (Horizon)
+avidashboard
 ===============================
 
-Avi Horizon UI plugin
+Avi Horizon UI bits: Adds a new Panel
 
 * Free software: Apache license
 
-READ THIS CAREFULLY BEFORE INSTALLING
--------------------------------------
-
-**NOTE:** If you are using Neutron LBaaSv2 or plan to expose only Avi UI to
-your horizon users, then please follow the INSTALLLATION instructions
-at https://github.com/avinetworks/avi-horizon-dashboard/tree/panel/README.rst.
-
-The following instructions are for enhancing multi-tabbed LBaaSv1 panel with the
-following features:
-
-1. A new tab to manage SSL certificates
-2. A new tab to show Avi Analytics (in read only mode)
-3. Enhancements to "Pools" tab: Ability to associate and disassociate certificates and
-   ability to add an extra listening port (LBaaSv1 allows only one listening port per VIP).
+The following instructions add a new **panel** on Horizon dashboard under Project>Networks
+section for showing Avi's full UI in one of the following modes: 
+(i) READ-WRITE mode: users can edit all objects they have privileges to modify, or
+(ii) READ-ONLY mode: users cannot make any edits to virtual services, pools, etc., but can view analytics, logs, and events.
 
 Installation
 ------------
 
-1. Obtain the avidashboard PIP package for "tabs" from the releases page: https://github.com/avinetworks/avi-horizon-dashboard/releases/
-   We also distribute Debian packages on the releases page.
+1. Obtain the avidashboard PIP package for "panel" from the releases page: https://github.com/avinetworks/avi-horizon-dashboard/releases/.
+   We also distribute a Debian package for "panel" code on the same page.
 
 2. Install the python package using the pip command as follows::
 
-    pip install --upgrade avidashboard-tabs.tar.gz
+    pip install --upgrade avidashboard-panel.tar.gz
 
-   If you have a previous version of avidashboard, the above command will remove it
-   and install this newer version.
+   In the above command, "--upgrade" option ensures that the newly downloaded
+   version overwrites any other version of avidashboard that already exists.
 
-3. Modify horizon's settings file to add avidashboard. If you are in a development
-   environment, then this file is horizon/openstack_dashboard/settings.py. If you
-   are in a production environment, most likely it is at
-   /usr/share/openstack-dashboard/openstack_dashboard/settings.py
+3. Update your local_settings file with the following steps. This is typically
+   openstack_dashboard/local/local_settings.py in development environment, or
+   /etc/openstack_dashboard/local_settings.py in a production environment.
 
-   Import enabled and update settings (only add the lines commented with "ADD THIS LINE")::
+4. Add the following code into local_settings.py at the end so that
+   Avi code gets imported into Horizon as well::
 
-    import avidashboard.enabled    # ADD THIS LINE
+    # for enabling Avi Dashboard's panel
+    from openstack_dashboard.utils import settings as utsettings
+    import avidashboard.enabled
+    orig_func = utsettings.update_dashboards
 
-    ...
+    def new_update_dashboards(modules, config, apps):
+        modules.append(avidashboard.enabled)
+        return orig_func(modules, config, apps)
 
-    INSTALLED_APPS = list(INSTALLED_APPS)  # Make sure it's mutable
-    settings.update_dashboards([
-       openstack_dashboard.enabled,
-       openstack_dashboard.local.enabled,
-       avidashboard.enabled,      # ADD THIS LINE TOO
-    ], HORIZON_CONFIG, INSTALLED_APPS)
+    utsettings.update_dashboards = new_update_dashboards
+
+   Note that there is a bug in Mitaka code, later fixed in Newton code
+   (https://github.com/openstack/horizon/commit/ea92e735829ae4271fcbae932f69ffdbda268546),
+   that causes Avi panel to show at the top of the list under "Network" section
+   instead of at the bottom. You can either use Newton Horizon code or apply
+   the fix from the commit referenced above.
     
-    ...
-
-
-   For *Juno Horizon*,
-   also add the following in the same file::
-
-    INSTALLED_APPS = [
-       'avidashboard',  # ADD THIS LINE
-       'openstack_dashboard',
-       ...
-    ]
-
-4. Add the IP address(es) of the Avi Controller to your local_settings (typically in
-   openstack_dashboard/local/local_settings.py in development environment, or at
-   /etc/openstack_dashboard/local_settings.py in a production environment).
+5. Add the IP address(es) of the Avi Controller in local_settings.py.
    For example::
 
     AVI_CONTROLLER = {"RegionA": "regiona.avi-lbaas.example.net",
                       "RegionB": "regionb.avi-lbaas.example.net", }
 
-5. (Optional) Enable the Avi Analytics Tab by setting the following in your
-   local settings file (Make sure clickjacking protection is not enabled on
-   Avi Controller; see notes below)::
-
-    AVI_ANALYTICS_TAB_ENABLED = True
-
-   Note that this option is only applicable for LBaaS v1.0 multi-tabbed panel.
-   Make sure that the LBaaS is enabled in local_settings.py: the variable enable_lb
-   should be set to True.
-                  
-6. (Optional) Enable full LBaaS panel to be the Avi UI by setting the following in your
-   local settings file (Make sure clickjacking protection is not enabled on
-   Avi Controller; see notes below)::
+6. Enable full LBaaS panel to be the Avi UI in local_settings.py.
+   (Make sure clickjacking protection is not enabled on
+   Avi Controller; see the notes at the end)::
 
     AVI_LBAAS_FULL_UI = True
 
@@ -93,11 +65,12 @@ Installation
 
     AVI_LBAAS_FULL_READONLY_UI = True
 
-   In *Juno's* version of Horizon, there was a bug in _tab_group.html template file, which causes the title of a tab to be shown in a tab group even when there is only tab in the tab group. This is fixed in later versions. To get around this issue, just rewrite _tab_group.html file with the Kilo version at https://github.com/openstack/horizon/blob/stable/kilo/horizon/templates/horizon/common/_tab_group.html.
+   **NOTE**: Set only one of the above in your config file.
 
-   Location of the _tab_group.html file:
-    *redhat*: /usr/lib/python2.7/site-packages/horizon/templates/horizon/common/_tab_group.html,
-    *ubuntu*: /usr/lib/python2.7/dist-packages/horizon/templates/horizon/common/_tab_group.html
+7. (Optional) The default name for the full LBaaS panel is "Loadbalancers". You can change it
+   to a custom name by adding the following setting to local_settings.py::
+
+    AVI_LBAAS_PANEL_NAME = "Avi Loadbalancer"
 
 7. Restart horizon. For example::
 
