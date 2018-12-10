@@ -5,7 +5,7 @@ git tag -d latest
 git tag latest
 git push -f origin latest
 set -e
-for BRANCH in tabs panel
+for BRANCH in panel
 do
     rm -rf VERSION
     git checkout $BRANCH
