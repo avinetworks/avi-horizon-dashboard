@@ -1,4 +1,11 @@
 ===============================
+Deprecation Note
+===============================
+
+Starting from Avi release 20.1.1, this dashboard has been deprecated.
+
+
+===============================
 avidashboard
 ===============================
 
